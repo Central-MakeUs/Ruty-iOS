@@ -10,11 +10,11 @@ import Foundation
 enum Font : String {
     case regular = "Pretendard-Regular"
     case bold = "Pretendard-Bold"
-    case Light = "Pretendard-Light"
-    case Medium = "Pretendard-Medium"
-    case SemiBold = "Pretendard-SemiBold"
-    case Thin = "Pretendard-Thin"
-    case ExtraLight = "Pretendard-ExtraLight"
-    case ExtraBold = "Pretendard-ExtraBold"
-    case Black = "Pretendard-Black"
+    case light = "Pretendard-Light"
+    case medium = "Pretendard-Medium"
+    case semiBold = "Pretendard-SemiBold"
+    case thin = "Pretendard-Thin"
+    case extraLight = "Pretendard-ExtraLight"
+    case extraBold = "Pretendard-ExtraBold"
+    case black = "Pretendard-Black"
 }

@@ -96,11 +96,13 @@ class LoginViewController: UIViewController {
     func moveToSignUp() {
         let secondVC = SignUpAgreeViewController()
         secondVC.modalPresentationStyle = .fullScreen
-        // UINavigationController 생성
-        let navigationController = UINavigationController(rootViewController: secondVC)
-        //self.navigationController?.pushViewController(navigationController, animated: true)
-        navigationController.modalPresentationStyle = .fullScreen
-        self.present(navigationController, animated: true, completion: nil)
+        self.present(secondVC, animated: true, completion: nil)
+        
+//        // UINavigationController 생성
+//        let navigationController = UINavigationController(rootViewController: secondVC)
+//        //self.navigationController?.pushViewController(navigationController, animated: true)
+//        navigationController.modalPresentationStyle = .fullScreen
+//        self.present(navigationController, animated: true, completion: nil)
     }
 }
 
