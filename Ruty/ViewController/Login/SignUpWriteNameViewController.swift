@@ -9,8 +9,18 @@ import UIKit
 
 class SignUpWriteNameViewController: UIViewController {
 
+    private let maxLength = 20
+    
+    let navigationView = UIView().then {
+        $0.backgroundColor = .clear
+    }
+    
     private let progressBarView = ProgressBarView().then {
         $0.layer.cornerRadius = 4
+    }
+    
+    let backBtn = UIButton().then {
+        $0.setImage(UIImage(named: "back"), for: .normal)
     }
     
     let titleLabel1 = UILabel().then {
@@ -39,9 +49,10 @@ class SignUpWriteNameViewController: UIViewController {
     
     let textField = UITextField().then {
         $0.placeholder = "닉네임을 입력해 주세요"
-        $0.borderStyle = .roundedRect
+        //$0.borderStyle = .roundedRect
         $0.backgroundColor = UIColor(243, 244, 246, 1)
         $0.layer.cornerRadius = 16
+        $0.layer.borderWidth = 0
         
         $0.autocorrectionType = .no                     // 자동 수정 활성화 여부
         $0.spellCheckingType = .no                      // 맞춤법 검사 활성화 여부
@@ -51,22 +62,152 @@ class SignUpWriteNameViewController: UIViewController {
         $0.returnKeyType = .done                        // 키보드 엔터키(return, done... )
     }
     
+    let nicknameDescription = UILabel().then {
+        $0.text = "한글,영어,숫자,이모지,특수문자 포함 최대 20자"
+        $0.textColor = UIColor(107, 114, 128, 1)
+        $0.textAlignment = .left
+        $0.font = UIFont(name: Font.regular.rawValue, size: 12)
+        $0.numberOfLines = 1
+    }
+    
+    let maxCountLabel = UILabel().then {
+        $0.text = "/20"
+        $0.textColor = UIColor(107, 114, 128, 1)
+        $0.textAlignment = .right
+        $0.font = UIFont(name: Font.regular.rawValue, size: 12)
+        $0.numberOfLines = 1
+    }
+    
+    let currentCountLabel = UILabel().then {
+        $0.text = "0"
+        $0.textColor = UIColor(3, 7, 18, 1)
+        $0.textAlignment = .right
+        $0.font = UIFont(name: Font.regular.rawValue, size: 12)
+        $0.numberOfLines = 1
+    }
+    
+    let moveNextPageBtn = UIButton().then {
+        $0.backgroundColor = UIColor(31, 41, 55, 1)
+        $0.layer.cornerRadius = 16
+        $0.setTitle("다음으로", for: .normal)
+        $0.titleLabel?.font = UIFont(name: Font.semiBold.rawValue, size: 16)
+        $0.setTitleColor(.white, for: .normal)
+    }
+    
+    // 1 : 문자 하나라도 입력해야함
+    // 2 : 닉네임 ok
+    // 3 : 최대 글자 수 넘김
+    var isNickNameCheckd = 1 {
+        didSet {
+            if isNickNameCheckd == 1 {
+                nicknameDescription.text = "한글,영어,숫자,이모지,특수문자 포함 최대 20자"
+                nicknameDescription.textColor = UIColor(107, 114, 128, 1)
+                currentCountLabel.textColor = UIColor(3, 7, 18, 1)
+            }
+            else if isNickNameCheckd == 2 {
+                nicknameDescription.text = "한글,영어,숫자,이모지,특수문자 포함 최대 20자"
+                nicknameDescription.textColor = UIColor(107, 114, 128, 1)
+                currentCountLabel.textColor = UIColor(3, 7, 18, 1)
+            }
+            else if isNickNameCheckd == 3 {
+                nicknameDescription.text = "20자 이내로 입력해주세요."
+                nicknameDescription.textColor = UIColor(234, 88, 12, 1)
+                currentCountLabel.textColor = UIColor(234, 88, 12, 1)
+            }
+        }
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-        print("Safe Area Insets: \(self.view.safeAreaInsets)")
         self.view.backgroundColor = .white
-        
+        setTextField()
         setLayout()
+        addTarget()
         
         // 프로그래스 바 0 -> 0.5 변화 애니메이션을 위한 초기값
         self.progressBarView.ratio = 0.0
+        
+        addObserver()
     }
     
     override func viewDidAppear(_ animated: Bool) {
         // 프로그래스 바 0 -> 0.5 변화 애니메이션
         self.progressBarView.ratio = 0.5
+    }
+    
+    func addTarget() {
+        var tapGesture = UITapGestureRecognizer(target: self, action: #selector(goBack))
+        backBtn.addGestureRecognizer(tapGesture)
         
+        tapGesture = UITapGestureRecognizer(target: self, action: #selector(tapNextPageBtn))
+        moveNextPageBtn.addGestureRecognizer(tapGesture)
+    }
+    
+    func addObserver() {
+        // 실시간 입력 이벤트 감지
+        textField.addTarget(self, action: #selector(textFieldDidChange(_:)), for: .editingChanged)
         
+        // 키보드 동작 관련
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow(_:)), name: UIResponder.keyboardWillShowNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide(_:)), name: UIResponder.keyboardWillHideNotification, object: nil)
+    }
+    
+    // 키보드 올라왔을 때 버튼이 키보드 위로 올라오도록 설정
+    @objc func keyboardWillShow(_ notification: NSNotification) {
+        guard let keyboardFrame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect else { return }
+        
+        self.moveNextPageBtn.snp.remakeConstraints() {
+            $0.left.right.equalTo(self.view.safeAreaLayoutGuide).inset(20)
+            $0.bottom.equalTo(self.view.safeAreaLayoutGuide).inset(keyboardFrame.height - self.view.safeAreaInsets.bottom + 20)
+            $0.height.equalTo(56)
+        }
+        UIView.animate(withDuration: 0.3) {
+            self.view.layoutIfNeeded()
+        }
+    }
+    
+    // 키보드 내려갔을 때 버튼이 기존 자리로 가도록 설정
+    @objc func keyboardWillHide(_ notification: Notification) {
+        guard let keyboardFrame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect else { return }
+        self.moveNextPageBtn.snp.remakeConstraints() {
+            $0.left.right.equalTo(self.view.safeAreaLayoutGuide).inset(20)
+            $0.bottom.equalTo(self.view.safeAreaLayoutGuide).inset(20)
+            $0.height.equalTo(56)
+        }
+        UIView.animate(withDuration: 0.3) {
+            self.view.layoutIfNeeded()
+        }
+    }
+    
+    // 현재 텍스트에서 글자 수 계산
+    @objc func textFieldDidChange(_ textField: UITextField) {
+        let text = textField.text ?? ""
+        let characterCount = text.countText()
+        currentCountLabel.text = "\(characterCount)"
+        
+        if characterCount == 0 {
+            isNickNameCheckd = 1
+        }
+        else if characterCount > 20 {
+            isNickNameCheckd = 3
+        }
+        else {
+            isNickNameCheckd = 2
+        }
+    }
+    
+    
+    @objc func tapNextPageBtn() {
+        if isNickNameCheckd == 2 {
+            print("다음페이지로 이동")
+        }
+        else {
+            print("다음페이지로 이동 불가")
+        }
+    }
+    
+    @objc func goBack() {
+        self.dismiss(animated: false)
     }
     
     func setTextField() {
@@ -75,11 +216,22 @@ class SignUpWriteNameViewController: UIViewController {
     }
 
     func setLayout() {
-        [progressBarView, titleLabel1, titleLabel2, descriptionLabel, textField].forEach({ view.addSubview($0) })
+        [navigationView, backBtn, progressBarView, titleLabel1, titleLabel2, descriptionLabel, textField, nicknameDescription, maxCountLabel, currentCountLabel, moveNextPageBtn].forEach({ view.addSubview($0) })
+        [backBtn, progressBarView].forEach({ navigationView.addSubview($0) })
+        
+        self.navigationView.snp.makeConstraints {
+            $0.top.left.right.equalTo(self.view.safeAreaLayoutGuide).inset(20)
+            $0.height.equalTo(24)
+        }
+        
+        self.backBtn.snp.makeConstraints {
+            $0.left.equalToSuperview()
+            $0.width.height.equalTo(24)
+        }
         
         self.progressBarView.snp.makeConstraints {
-            $0.left.right.equalTo(self.view.safeAreaLayoutGuide).inset(20)
-            $0.top.equalTo(self.view.safeAreaLayoutGuide).inset(24)
+            $0.left.right.equalToSuperview().inset(40)
+            $0.centerY.equalToSuperview()
             $0.height.equalTo(8)
         }
         
@@ -103,24 +255,79 @@ class SignUpWriteNameViewController: UIViewController {
             $0.top.equalTo(descriptionLabel.snp.bottom).offset(40)
             $0.height.equalTo(48)
         })
+        
+        self.nicknameDescription.snp.makeConstraints({
+            $0.left.equalToSuperview().inset(28)
+            $0.top.equalTo(textField.snp.bottom).offset(7)
+        })
+        
+        self.maxCountLabel.snp.makeConstraints({
+            $0.right.equalToSuperview().inset(20)
+            $0.top.equalTo(textField.snp.bottom).offset(7)
+        })
+        
+        self.currentCountLabel.snp.makeConstraints({
+            $0.right.equalTo(maxCountLabel.snp.left)
+            $0.top.equalTo(textField.snp.bottom).offset(7)
+        })
+        
+        self.moveNextPageBtn.snp.makeConstraints {
+            $0.left.right.equalTo(self.view.safeAreaLayoutGuide).inset(20)
+            $0.bottom.equalTo(self.view.safeAreaLayoutGuide).inset(20)
+            $0.height.equalTo(56)
+        }
     }
 }
 
 extension SignUpWriteNameViewController: UITextFieldDelegate {
+    // 키보드 외의 화면 누를 시 키보드 내려감
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-            view.endEditing(true)
+        view.endEditing(true)
     }
     
+    // 완료버튼 누를시 키보드 내려감
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
-        view.endEditing(true)
+        textField.resignFirstResponder()
+        return true
+    }
+    
+    // 한글자 입력/제거 할때마다 호출
+    func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
+        
+        // 최대 글자수 도달하더라도 backspace는 허용
+        if let char = string.cString(using: String.Encoding.utf8) {
+            let isBackSpace = strcmp(char, "\\b")
+            if isBackSpace == -92 {
+                return true
+            }
+        }
+        
+        let text = textField.text ?? ""
+        let textCount = text.countText()
+        
+        // 최대 글자수 제한
+//        if textCount >= 20 {
+//            return false
+//        }
+        
+        
+        
         return true
     }
 }
 
 extension UITextField {
     func addLeftPadding() {
-        let paddingView = UIView(frame: CGRect(x: 0, y: 0, width: 10, height: self.frame.height))
+        let paddingView = UIView(frame: CGRect(x: 0, y: 0, width: 16, height: self.frame.height))
         self.leftView = paddingView
         self.leftViewMode = ViewMode.always
+    }
+}
+
+extension String {
+    // 글자수 반환
+    func countText() -> Int {
+        // 한글의 자음, 모음 방식을 계산하기 위해 그래픽 단위로 계산
+        return self.precomposedStringWithCanonicalMapping.count
     }
 }

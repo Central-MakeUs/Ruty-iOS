@@ -11,6 +11,14 @@ import Then
 
 class SignUpAgreeViewController: UIViewController {
     
+    let navigationView = UIView().then {
+        $0.backgroundColor = .clear
+    }
+    
+    let backBtn = UIButton().then {
+        $0.setImage(UIImage(named: "back"), for: .normal)
+    }
+    
     private let progressBarView = ProgressBarView().then {
         $0.layer.cornerRadius = 4
     }
@@ -100,11 +108,11 @@ class SignUpAgreeViewController: UIViewController {
     }
     
     let moveNextPageBtn = UIButton().then {
-        $0.backgroundColor = UIColor(229, 231, 235, 1)
+        $0.backgroundColor = UIColor(31, 41, 55, 1)
         $0.layer.cornerRadius = 16
         $0.setTitle("다음으로", for: .normal)
         $0.titleLabel?.font = UIFont(name: Font.semiBold.rawValue, size: 16)
-        $0.setTitleColor(UIColor(156, 163, 175, 1), for: .normal)
+        $0.setTitleColor(.white, for: .normal)
     }
     
     var isAllAgree = false {
@@ -130,10 +138,6 @@ class SignUpAgreeViewController: UIViewController {
             }
             else {
                 agreeRequiredBtn.setImage(UIImage(named: "selectOff"), for: .normal)
-                
-                // 다음 페이지 버튼 비활성화
-                moveNextPageBtn.backgroundColor = UIColor(229, 231, 235, 1)
-                moveNextPageBtn.setTitleColor(UIColor(156, 163, 175, 1), for: .normal)
             }
             
             checkAndUpdateAllAgree()
@@ -155,7 +159,6 @@ class SignUpAgreeViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        print("Safe Area Insets: \(self.view.safeAreaInsets)")
         self.view.backgroundColor = .white
         
         setLayout()
@@ -171,7 +174,8 @@ class SignUpAgreeViewController: UIViewController {
     
     // MARK: - layout
     func setLayout() {
-        [progressBarView, titleLabel1, titleLabel2, descriptionLabel, agreeContainer, moveNextPageBtn].forEach({ view.addSubview($0) })
+        [navigationView, titleLabel1, titleLabel2, descriptionLabel, agreeContainer, moveNextPageBtn].forEach({ view.addSubview($0) })
+        [backBtn, progressBarView].forEach({ navigationView.addSubview($0) })
         [agreeAllViewBtn, agreeRequiredView, agreeOptionalView].forEach({ agreeContainer.addSubview($0) })
         [agreeAllcheckImage, agreeAllDescription, agreeAllLine].forEach({ agreeAllViewBtn.addSubview($0) })
         [agreeRequiredBtn, agreeRequiredDescription].forEach({ agreeRequiredView.addSubview($0) })
@@ -183,9 +187,19 @@ class SignUpAgreeViewController: UIViewController {
             $0.height.equalTo(56)
         }
         
+        self.navigationView.snp.makeConstraints {
+            $0.top.left.right.equalTo(self.view.safeAreaLayoutGuide).inset(20)
+            $0.height.equalTo(24)
+        }
+        
+        self.backBtn.snp.makeConstraints {
+            $0.left.equalToSuperview()
+            $0.width.height.equalTo(24)
+        }
+        
         self.progressBarView.snp.makeConstraints {
-            $0.left.right.equalTo(self.view.safeAreaLayoutGuide).inset(20)
-            $0.top.equalTo(self.view.safeAreaLayoutGuide).inset(24)
+            $0.left.right.equalToSuperview().inset(40)
+            $0.centerY.equalToSuperview()
             $0.height.equalTo(8)
         }
         
@@ -356,7 +370,10 @@ class SignUpAgreeViewController: UIViewController {
     }
     
     func addTargetToBtn() {
-        var tapGesture = UITapGestureRecognizer(target: self, action: #selector(tapAgreeAllViewBtn))
+        var tapGesture = UITapGestureRecognizer(target: self, action: #selector(goBack))
+        backBtn.addGestureRecognizer(tapGesture)
+        
+        tapGesture = UITapGestureRecognizer(target: self, action: #selector(tapAgreeAllViewBtn))
         agreeAllViewBtn.addGestureRecognizer(tapGesture)
         
         tapGesture = UITapGestureRecognizer(target: self, action: #selector(tapAgreeRequiredBtn))
@@ -367,6 +384,10 @@ class SignUpAgreeViewController: UIViewController {
         
         tapGesture = UITapGestureRecognizer(target: self, action: #selector(tapNextPageBtn))
         moveNextPageBtn.addGestureRecognizer(tapGesture)
+    }
+    
+    @objc func goBack() {
+        self.dismiss(animated: false)
     }
     
     @objc func tapAgreeAllViewBtn() {
@@ -396,7 +417,7 @@ class SignUpAgreeViewController: UIViewController {
             self.present(firstVC, animated: false, completion: nil)
         }
         else {
-            print("동의 해주세용")
+            showToast(view: view, "필수 약관에 동의해주세요", withDuration: 2.0, delay: 1.5)
         }
     }
 }
