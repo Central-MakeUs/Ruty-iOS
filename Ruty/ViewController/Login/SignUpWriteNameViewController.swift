@@ -188,8 +188,13 @@ class SignUpWriteNameViewController: UIViewController {
         if characterCount == 0 {
             isNickNameCheckd = 1
         }
-        else if characterCount > 20 {
+        else if characterCount == 20 {
             isNickNameCheckd = 3
+        }
+        else if characterCount >= 21 {
+            // 20자 초과한 글자는 바로 삭제
+            textField.deleteBackward()
+            print(textField.text)
         }
         else {
             isNickNameCheckd = 2
@@ -198,8 +203,12 @@ class SignUpWriteNameViewController: UIViewController {
     
     
     @objc func tapNextPageBtn() {
-        if isNickNameCheckd == 2 {
+        if textField.text == " " {
+            print("공백입력 불가, 다음페이지로 이동 불가")
+        }
+        else if isNickNameCheckd == 2 || isNickNameCheckd == 3 {
             print("다음페이지로 이동")
+            print(textField.text)
         }
         else {
             print("다음페이지로 이동 불가")

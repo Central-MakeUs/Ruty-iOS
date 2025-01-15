@@ -8,6 +8,7 @@
 import UIKit
 import SnapKit
 import Then
+import SafariServices
 
 class SignUpAgreeViewController: UIViewController {
     
@@ -320,12 +321,18 @@ class SignUpAgreeViewController: UIViewController {
                range.contains(index) {
                 print("이용약관 클릭됨!")
                 // 원하는 함수 호출
+                let pageURL = NSURL(string: "https://www.naver.com/")
+                let infoView: SFSafariViewController = SFSafariViewController(url: pageURL as! URL)
+                self.present(infoView, animated: true, completion: nil)
             }
             if let index = characterIndex(at: tapLocation, in: label),
                let range = (text as NSString).range(of: "개인정보 수집·이용").toRange(),
                range.contains(index) {
                 print("개인정보 클릭됨!")
                 // 원하는 함수 호출
+                let pageURL = NSURL(string: "https://www.naver.com/")
+                let infoView: SFSafariViewController = SFSafariViewController(url: pageURL as! URL)
+                self.present(infoView, animated: true, completion: nil)
             }
         }
         else if label.tag == 2 {
@@ -335,6 +342,10 @@ class SignUpAgreeViewController: UIViewController {
                range.contains(index) {
                 print("마케팅 클릭됨!")
                 // 원하는 함수 호출
+                // 원하는 함수 호출
+                let pageURL = NSURL(string: "https://www.naver.com/")
+                let infoView: SFSafariViewController = SFSafariViewController(url: pageURL as! URL)
+                self.present(infoView, animated: true, completion: nil)
             }
         }
     }
