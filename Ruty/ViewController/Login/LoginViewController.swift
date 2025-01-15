@@ -33,6 +33,13 @@ class LoginViewController: UIViewController {
         self.view.backgroundColor = .white
         
         setLayout()
+        // 회원가입 창으로 이동, 로그인 과정 없애기 위한 디버깅용
+        //self.moveToSignUp()
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        // 회원가입 창으로 이동, 로그인 과정 없애기 위한 디버깅용
+        self.moveToSignUp()
     }
     
     func setLayout() {
@@ -65,6 +72,9 @@ class LoginViewController: UIViewController {
             
             print(email)
             print(name)
+            
+            // 회원가입 창으로 이동
+            self.moveToSignUp()
         }
     }
     
@@ -81,6 +91,18 @@ class LoginViewController: UIViewController {
         controller.delegate = self
         controller.presentationContextProvider = self
         controller.performRequests()
+    }
+    
+    func moveToSignUp() {
+        let secondVC = SignUpAgreeViewController()
+        secondVC.modalPresentationStyle = .fullScreen
+        self.present(secondVC, animated: true, completion: nil)
+        
+//        // UINavigationController 생성
+//        let navigationController = UINavigationController(rootViewController: secondVC)
+//        //self.navigationController?.pushViewController(navigationController, animated: true)
+//        navigationController.modalPresentationStyle = .fullScreen
+//        self.present(navigationController, animated: true, completion: nil)
     }
 }
 
@@ -121,7 +143,10 @@ extension LoginViewController: ASAuthorizationControllerDelegate {
             print("authorizationCode: \(authorizationCode!)")
             
             // 여기에 로그인 성공 후 수행할 작업을 추가하세요.
-
+            
+            // 회원가입 창으로 이동
+            moveToSignUp()
+            
         default: break
             
         }
