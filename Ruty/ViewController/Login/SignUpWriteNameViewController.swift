@@ -203,12 +203,13 @@ class SignUpWriteNameViewController: UIViewController {
     
     
     @objc func tapNextPageBtn() {
-        if textField.text == " " {
-            print("공백입력 불가, 다음페이지로 이동 불가")
+        if let text = textField.text, text.first == " " {
+            print("첫 입력으로 공백은 불가, 다음페이지로 이동 불가")
         }
         else if isNickNameCheckd == 2 || isNickNameCheckd == 3 {
             print("다음페이지로 이동")
-            print(textField.text)
+            
+            
         }
         else {
             print("다음페이지로 이동 불가")

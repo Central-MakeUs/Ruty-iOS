@@ -57,6 +57,18 @@ class LoginViewController: UIViewController {
     }
     
     @objc func tapGoogleLoginBtn(_ sender: UIButton) {
+        
+        // 외부 사이트 로그인 방식
+//        let api = "https://" + (Bundle.main.infoDictionary?["GOOGLE_LOGIN_API"] as! String)
+//        print(api)
+//        guard let loginURL = URL(string: api) else {
+//            print("Invalid login URL")
+//            return
+//        }
+//        UIApplication.shared.open(loginURL, options: [:], completionHandler: nil)
+        
+        
+        // SDK 로그인 방식
         GIDSignIn.sharedInstance.signIn(withPresenting: self) { signInResult, error in
             guard error == nil else { return }
             
@@ -78,8 +90,19 @@ class LoginViewController: UIViewController {
     }
     
     @objc func tapAppleLoginBtn() {
-        print("Start Apple sign in")
+        // 외부 사이트 로그인 방식
+//        print("Start Apple sign in")
+//        
+//        let api = "https://" + (Bundle.main.infoDictionary?["APPLE_LOGIN_API"] as! String)
+//        print(api)
+//        guard let loginURL = URL(string: api) else {
+//            print("Invalid login URL")
+//            return
+//        }
+//        UIApplication.shared.open(loginURL, options: [:], completionHandler: nil)
+//
         
+        // SDK 로그인 방식
         let provider = ASAuthorizationAppleIDProvider()
         let requset = provider.createRequest()
         
