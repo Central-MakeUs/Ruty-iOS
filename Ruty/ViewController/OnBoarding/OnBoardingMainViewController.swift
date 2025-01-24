@@ -66,6 +66,7 @@ class OnBoardingMainViewController: UIViewController {
     private let tableView = UITableView().then {
         $0.backgroundColor = .white
         $0.separatorStyle = .singleLine
+        $0.isScrollEnabled = false
     }
     
     private var data: [ImproveSelectModel] = []
@@ -74,7 +75,6 @@ class OnBoardingMainViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        setLayout()
         
         // 기본 Setting
         self.progressBarView.ratio = 0.3
@@ -84,11 +84,40 @@ class OnBoardingMainViewController: UIViewController {
         // table view func
         setupTableView()
         loadData()
+        
+        setLayout()
+        
+        // tableView의 팬 제스처를 contentScrollView로 전달
+        // tableView 의 스크롤은 안되더라도 클릭 제스쳐는 작동하게함
+        contentScrollView.panGestureRecognizer.require(toFail: tableView.panGestureRecognizer)
     }
     
     override func viewDidAppear(_ animated: Bool) {
         // 프로그래스 바 0.3 -> 0.6 변화 애니메이션
         self.progressBarView.ratio = 0.6
+    }
+    
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        updateContentViewHeight()
+    }
+    
+    // tableView의 콘텐츠 높이에 따라 contentView의 높이를 동적으로 조정
+    func updateContentViewHeight() {
+        let tableViewHeight = tableView.contentSize.height
+        let contentHeight = tableViewHeight
+                            + navigationView.frame.height
+                            + titleLabel.frame.height
+                            + descriptionLabel1.frame.height
+                            + descriptionLabel2.frame.height
+                            + 87 // 기타 고정된 간격
+
+        // 스크롤뷰의 콘텐츠 크기 업데이트
+        contentScrollView.contentSize = CGSize(width: contentScrollView.frame.width, height: contentHeight)
+        
+        contentView.snp.updateConstraints {
+            $0.height.equalTo(contentHeight)
+        }
     }
     
     func addTarget() {
@@ -100,65 +129,29 @@ class OnBoardingMainViewController: UIViewController {
     }
     
     func setLayout() {
-//        [navigationView, contentScrollView].forEach({ view.addSubview($0) })
-//        [contentView].forEach({ contentScrollView.addSubview($0) })
-//        [titleLabel, descriptionLabel1, descriptionLabel2].forEach({ contentView.addSubview($0) })
-//        [backBtn, progressBarView].forEach({ navigationView.addSubview($0) })
-//        
-//        self.contentScrollView.snp.makeConstraints {
-//            $0.bottom.right.left.equalToSuperview()
-//            $0.top.equalTo(self.view.safeAreaLayoutGuide).inset(64)
-//        }
-//        
-//        self.contentView.snp.makeConstraints {
-//            $0.top.bottom.right.left.equalToSuperview()
-//            $0.width.equalToSuperview()
-//            $0.height.equalTo(1000)
-//        }
-//        
-//        self.navigationView.snp.makeConstraints {
-//            $0.top.left.right.equalTo(self.view.safeAreaLayoutGuide).inset(20)
-//            $0.height.equalTo(24)
-//        }
-//        
-//        self.backBtn.snp.makeConstraints {
-//            $0.left.equalToSuperview()
-//            $0.width.height.equalTo(24)
-//        }
-//        
-//        self.progressBarView.snp.makeConstraints {
-//            $0.left.right.equalToSuperview().inset(40)
-//            $0.centerY.equalToSuperview()
-//            $0.height.equalTo(8)
-//        }
-//        
-//        self.titleLabel.snp.makeConstraints({
-//            $0.top.equalToSuperview().offset(8)
-//            $0.leading.trailing.equalToSuperview().inset(20)
-//        })
-//        
-//        self.descriptionLabel1.snp.makeConstraints({
-//            $0.top.equalTo(titleLabel.snp.bottom).offset(8)
-//            $0.leading.trailing.equalToSuperview().inset(20)
-//        })
-//        
-//        self.descriptionLabel2.snp.makeConstraints({
-//            $0.top.equalTo(descriptionLabel1.snp.bottom).offset(3)
-//            $0.leading.trailing.equalToSuperview().inset(20)
-//        })
-        
-        
-        [navigationView, titleLabel, descriptionLabel1, descriptionLabel2, completeBtn].forEach({ view.addSubview($0) })
+        [contentScrollView, completeBtn].forEach({ view.addSubview($0) })
+        [contentView].forEach({ contentScrollView.addSubview($0) })
+        [navigationView, titleLabel, descriptionLabel1, descriptionLabel2, tableView].forEach({ contentView.addSubview($0) })
         [backBtn, progressBarView].forEach({ navigationView.addSubview($0) })
         
+        self.contentScrollView.snp.makeConstraints {
+            $0.bottom.equalTo(completeBtn.snp.top).offset(-20)
+            $0.top.right.left.equalTo(self.view.safeAreaLayoutGuide)
+        }
+        
+        self.contentView.snp.makeConstraints {
+            $0.top.bottom.right.left.equalToSuperview()
+            $0.width.equalToSuperview()
+            $0.height.equalTo(100)
+        }
+        
         self.navigationView.snp.makeConstraints {
-            $0.top.left.right.equalTo(self.view.safeAreaLayoutGuide).inset(20)
+            $0.top.left.right.equalToSuperview().inset(20)
             $0.height.equalTo(24)
         }
         
         self.backBtn.snp.makeConstraints {
             $0.left.equalToSuperview()
-            $0.centerY.equalToSuperview()
             $0.width.height.equalTo(24)
         }
         
@@ -168,14 +161,8 @@ class OnBoardingMainViewController: UIViewController {
             $0.height.equalTo(8)
         }
         
-        self.completeBtn.snp.makeConstraints {
-            $0.right.equalToSuperview().inset(20)
-            $0.top.equalToSuperview().inset(100)
-            $0.height.width.equalTo(50)
-        }
-        
         self.titleLabel.snp.makeConstraints({
-            $0.top.equalTo(backBtn.snp.bottom).offset(28)
+            $0.top.equalTo(navigationView.snp.bottom).offset(28)
             $0.leading.trailing.equalToSuperview().inset(20)
         })
         
@@ -189,11 +176,15 @@ class OnBoardingMainViewController: UIViewController {
             $0.leading.trailing.equalToSuperview().inset(20)
         })
         
-        // table view add
-        view.addSubview(tableView)
-        tableView.snp.makeConstraints {
+        self.tableView.snp.makeConstraints {
+            print(tableView.contentSize.height)
             $0.top.equalTo(descriptionLabel2.snp.bottom).offset(28)
             $0.bottom.left.right.equalToSuperview()
+        }
+        
+        self.completeBtn.snp.makeConstraints {
+            $0.right.left.bottom.equalTo(self.view.safeAreaLayoutGuide).inset(20)
+            $0.height.equalTo(56)
         }
     }
     
@@ -221,6 +212,7 @@ class OnBoardingMainViewController: UIViewController {
     // MARK: - TableView Func
     private func loadData() {
         data = ImproveSelectDataProvider.shared.fetchData()
+        //updateContentViewHeight()
     }
     
     private func setupTableView() {
