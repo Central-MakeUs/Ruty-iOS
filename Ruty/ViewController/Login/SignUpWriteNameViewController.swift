@@ -100,17 +100,17 @@ class SignUpWriteNameViewController: UIViewController {
     var isNickNameCheckd = 1 {
         didSet {
             if isNickNameCheckd == 1 {
-                nicknameDescription.text = "한글,영어,숫자,이모지,특수문자 포함 최대 20자"
+                nicknameDescription.text = "공백만으로는 닉네임을 만들 수 없어요"
                 nicknameDescription.textColor = UIColor(107, 114, 128, 1)
                 currentCountLabel.textColor = UIColor(3, 7, 18, 1)
             }
             else if isNickNameCheckd == 2 {
-                nicknameDescription.text = "한글,영어,숫자,이모지,특수문자 포함 최대 20자"
+                nicknameDescription.text = "닉네임은 1-20자로 입력해 주세요 (공백 제외)"
                 nicknameDescription.textColor = UIColor(107, 114, 128, 1)
                 currentCountLabel.textColor = UIColor(3, 7, 18, 1)
             }
             else if isNickNameCheckd == 3 {
-                nicknameDescription.text = "20자 이내로 입력해주세요."
+                nicknameDescription.text = "20자 이내로 입력해주세요"
                 nicknameDescription.textColor = UIColor(234, 88, 12, 1)
                 currentCountLabel.textColor = UIColor(234, 88, 12, 1)
             }
@@ -131,8 +131,8 @@ class SignUpWriteNameViewController: UIViewController {
     }
     
     override func viewDidAppear(_ animated: Bool) {
-        // 프로그래스 바 0 -> 0.5 변화 애니메이션
-        self.progressBarView.ratio = 0.5
+        // 프로그래스 바 0 -> 0.3 변화 애니메이션
+        self.progressBarView.ratio = 0.3
     }
     
     func addTarget() {
@@ -203,12 +203,13 @@ class SignUpWriteNameViewController: UIViewController {
     
     
     @objc func tapNextPageBtn() {
-        if textField.text == " " {
-            print("공백입력 불가, 다음페이지로 이동 불가")
+        if let text = textField.text, text.first == " " {
+            print("첫 입력으로 공백은 불가, 다음페이지로 이동 불가")
         }
         else if isNickNameCheckd == 2 || isNickNameCheckd == 3 {
             print("다음페이지로 이동")
-            print(textField.text)
+            DataManager.shared.userNickName = textField.text
+            moveToNextPage()
         }
         else {
             print("다음페이지로 이동 불가")
@@ -217,6 +218,12 @@ class SignUpWriteNameViewController: UIViewController {
     
     @objc func goBack() {
         self.dismiss(animated: false)
+    }
+    
+    func moveToNextPage() {
+        let secondVC = OnBoardingMainViewController()
+        secondVC.modalPresentationStyle = .fullScreen
+        self.present(secondVC, animated: false, completion: nil)
     }
     
     func setTextField() {
