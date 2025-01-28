@@ -37,8 +37,12 @@ class LoginViewController: UIViewController {
     
     override func viewDidAppear(_ animated: Bool) {
         // 회원가입 창으로 이동, 로그인 과정 없애기 위한 디버깅용
+        //self.moveToSignUp()
+        
         // 디버깅 안할땐 주석처리 필수
-        // self.moveToSignUp()
+        let secondVC = LoadingViewController()
+        secondVC.modalPresentationStyle = .fullScreen
+        self.present(secondVC, animated: true, completion: nil)
     }
     
     func setLayout() {
