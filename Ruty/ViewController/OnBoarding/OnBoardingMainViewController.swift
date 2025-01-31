@@ -204,6 +204,7 @@ class OnBoardingMainViewController: UIViewController {
         // 1~3 개인 경우 통과
         else {
             let secondVC = LoadingViewController()
+            //let secondVC = RoutineViewController() // 디버깅용
             secondVC.modalPresentationStyle = .fullScreen
             self.present(secondVC, animated: false, completion: nil)
         }
