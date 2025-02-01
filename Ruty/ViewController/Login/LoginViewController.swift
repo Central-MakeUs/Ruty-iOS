@@ -40,7 +40,7 @@ class LoginViewController: UIViewController {
         //self.moveToSignUp()
         
         // 디버깅 안할땐 주석처리 필수
-        let secondVC = OnBoardingMainViewController()
+        let secondVC = RoutineViewController()
         secondVC.modalPresentationStyle = .fullScreen
         self.present(secondVC, animated: true, completion: nil)
     }

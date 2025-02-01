@@ -55,13 +55,13 @@ class RoutineDataProvider {
         for routine in rawRoutinesData.data {
             switch routine.category {
             case "HOUSE":
-                routinesData[0].append(routine)//routinesOfHouse.append(routine)
-            case "SELFCARE":
-                routinesData[1].append(routine)//routinesOfSelfcare.append(routine)
+                routinesData[0].append(routine)
             case "MONEY":
-                routinesData[2].append(routine)//outinesOfMoney.append(routine)
+                routinesData[1].append(routine)
             case "LEISURE":
-                routinesData[3].append(routine)//routinesOfLeisure.append(routine)
+                routinesData[2].append(routine)
+            case "SELFCARE":
+                routinesData[3].append(routine)
             default: break
             }
         }
