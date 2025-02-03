@@ -33,8 +33,11 @@ class RoutineDataProvider {
     private var rawRoutinesData = Routines(message: "", data: [])
     private var routinesData = [[Routine]](repeating: [Routine](), count: 4)
     
-    // 인스턴스 생성
-    let param = GPT(prompt: "안정적인 주거환경 만들기, 규칙적이고 건강한 생활 리듬 만들기, 합리적이고 계획적인 소비 습관 만들기")
+    private var param: GPT?
+    
+    func setGPTParam(prompt: String) {
+        param = GPT(prompt: prompt)
+    }
     
     func loadRoutinesData() -> [[Routine]] { return routinesData }
     

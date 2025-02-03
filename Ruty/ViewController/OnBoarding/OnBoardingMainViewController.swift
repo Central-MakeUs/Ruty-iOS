@@ -203,11 +203,37 @@ class OnBoardingMainViewController: UIViewController {
         }
         // 1~3 개인 경우 통과
         else {
+            // GPT Prompt 전달
+            RoutineDataProvider.shared.setGPTParam(prompt: getGPTPrompt())
+            
             let secondVC = LoadingViewController()
             //let secondVC = RoutineViewController() // 디버깅용
             secondVC.modalPresentationStyle = .fullScreen
             self.present(secondVC, animated: false, completion: nil)
         }
+    }
+    
+    // 선택된 개선하고 싶은 점을 프롬프트 메시지로 변환하여 반환
+    private func getGPTPrompt() -> String {
+        var prompt = ""
+        
+        for row in 0..<tableView.numberOfRows(inSection: 0) {
+            let indexPath = IndexPath(row: row, section: 0)
+            
+            guard let cell = tableView.cellForRow(at: indexPath) as? ImproveSelectTableViewCell else { return "null" }
+            
+            if cell.isChecked == true {
+                if prompt == "" {
+                    prompt += cell.content.text ?? "null"
+                }
+                else {
+                    prompt += ", " + (cell.content.text ?? "null")
+                }
+            }
+        }
+        
+        print("prompt: \(prompt)")
+        return prompt
     }
     
     // MARK: - TableView Func
