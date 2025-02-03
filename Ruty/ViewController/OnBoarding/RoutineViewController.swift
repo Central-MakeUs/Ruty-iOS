@@ -93,18 +93,17 @@ class RoutineViewController: UIViewController {
             Routine(id: 1, title: "퇴근", description: "배", category: "HOUSE"),
             Routine(id: 1, title: "집에가고싶어요", description: "이정도 길이면 될까요 이정도 길이면 될까요 이정도 길이면 될까요?", category: "HOUSE"),
             Routine(id: 1, title: "퇴근 후 나를 위한 한 끼 만들기퇴근 후 나를 위한 한 끼 만들기", description: "배달 음식을 자주 시키는 이유 중 하나는 손쉬운 해결책을 찾는 것인데, 간단한 집밥을 만들어 먹는 습관을 들이면 배달 음식에 대한 의존도를 줄일 수 있습니다.", category: "HOUSE")],
-                        
+            [],
             [Routine(id: 1, title: "여가", description: "생활", category: "LEISURE"),
             Routine(id: 1, title: "게임하기", description: "겜겜", category: "LEISURE"),
              Routine(id: 1, title: "게임하기게임하기게임하기게임하기게임하기", description: "게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임", category: "LEISURE")],
-                        
             [Routine(id: 1, title: "자기관리", description: "생활", category: "SELFCARE"),
             Routine(id: 1, title: "게임하기", description: "겜겜", category: "SELFCARE"),
             Routine(id: 1, title: "게임하기게임하기게임하기게임하기게임하기", description: "자기관리", category: "SELFCARE")]
         ]
-
         
         appearOnlyExistCategory() // 존재하는 카테고리 종류만 키워드에 노출될 수 있도록 리스트업
+        checkFirstCategory() // 화면에 바로 표기할 첫번째 카테고리 index 설정
         
         setupCollectionView()
         
@@ -120,7 +119,6 @@ class RoutineViewController: UIViewController {
     }
     
     override func viewWillAppear(_ animated: Bool) {
-        //tableView.reloadData()
         print("view will appear")
     }
     
@@ -147,6 +145,7 @@ class RoutineViewController: UIViewController {
         tableView.register(RoutineCellTableViewCell.self, forCellReuseIdentifier: RoutineCellTableViewCell.identifier)
     }
     
+    // 존재하는 카테고리 종류만 키워드에 노출될 수 있도록 리스트업
     func appearOnlyExistCategory() {
         for category in routinesData {
             if category.isEmpty == false {
@@ -155,6 +154,29 @@ class RoutineViewController: UIViewController {
                 case "MONEY" : appearCategory.append("소비")
                 case "LEISURE" : appearCategory.append("여가생활")
                 case "SELFCARE" : appearCategory.append("자기관리")
+                default: break
+                }
+            }
+        }
+    }
+    
+    // 화면에 바로 표기할 첫번째 카테고리 index 설정
+    func checkFirstCategory() {
+        for category in routinesData {
+            if category.isEmpty == false {
+                switch category[0].category {
+                case "HOUSE" :
+                    selectedCategoryIndex = 0
+                    return
+                case "MONEY" :
+                    selectedCategoryIndex = 1
+                    return
+                case "LEISURE" :
+                    selectedCategoryIndex = 2
+                    return
+                case "SELFCARE" :
+                    selectedCategoryIndex = 3
+                    return
                 default: break
                 }
             }
@@ -238,7 +260,7 @@ class RoutineViewController: UIViewController {
 extension RoutineViewController : UITableViewDelegate, UITableViewDataSource {
     // MARK: - UITableViewDataSource
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return routinesData[selectedCategoryIndex].count
+        return routinesData[selectedCategoryIndex].count // 현재 선택된 카테고리의 데이터의 수 탐색
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -321,10 +343,17 @@ extension RoutineViewController: UICollectionViewDataSource, UICollectionViewDel
     // category cell 클릭 이벤트
     // 선택된 cell
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        selectedCategoryIndex = indexPath.row
+        switch appearCategory[indexPath.row] {
+        case "주거": selectedCategoryIndex = 0
+        case "소비": selectedCategoryIndex = 1
+        case "여가생활": selectedCategoryIndex = 2
+        case "자기관리": selectedCategoryIndex = 3
+        default: break
+        }
         tableView.reloadData() // 선택된 카테고리에 맞게 테이블뷰 데이터 업데이트
         updateContentViewHeight()
         
+        // 클릭한 cell 의 isClicked true 로 설정
         if let cell = collectionView.cellForItem(at: indexPath) as? CategoryCollectionViewCell {
             cell.isClicked = true
         }
@@ -332,6 +361,7 @@ extension RoutineViewController: UICollectionViewDataSource, UICollectionViewDel
     
     // 선택 해제된 cell
     func collectionView(_ collectionView: UICollectionView, didDeselectItemAt indexPath: IndexPath) {
+        // 선택 해제된 cell 의 isClicked 된 false로 설정
         if let cell = collectionView.cellForItem(at: indexPath) as? CategoryCollectionViewCell {
             cell.isClicked = false
         }
