@@ -7,7 +7,7 @@
 
 import UIKit
 
-func showToast(view : UIView , _ message : String, withDuration: Double, delay: Double) {
+func showToast(view : UIView , message : String, imageName: String, withDuration: Double, delay: Double) {
     let toastLabel = UILabel().then {
         $0.textColor = UIColor(255, 255, 255, 1)
         $0.font = UIFont(name: Font.semiBold.rawValue, size: 16)
@@ -16,7 +16,7 @@ func showToast(view : UIView , _ message : String, withDuration: Double, delay: 
     }
     let toastCheckImage = UIImageView().then {
         $0.layer.backgroundColor = UIColor(red: 0, green: 0, blue: 0, alpha: 0).cgColor
-        $0.image = UIImage(named: "warning-mark")
+        $0.image = UIImage(named: imageName)
     }
     let toastBackground = UIView().then {
         $0.backgroundColor = UIColor(75, 85, 99, 1)

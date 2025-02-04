@@ -428,7 +428,7 @@ class SignUpAgreeViewController: UIViewController {
             self.present(firstVC, animated: false, completion: nil)
         }
         else {
-            showToast(view: view, "필수 약관에 동의해주세요", withDuration: 2.0, delay: 1.5)
+            showToast(view: view, message: "필수 약관에 동의해주세요", imageName: "warning-mark", withDuration: 0.5, delay: 1.5)
         }
     }
 }

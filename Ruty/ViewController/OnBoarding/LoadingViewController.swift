@@ -55,6 +55,14 @@ class LoadingViewController: UIViewController {
         
         // 로딩 뷰 설정
         setupRotatingView()
+        
+        // ai 데이터 생성 대기 시작
+        RoutineDataProvider.shared.startloadAIData {
+            // 생성 완료되면 다음 페이지로 이동
+            let secondVC = RoutineViewController()
+            secondVC.modalPresentationStyle = .fullScreen
+            self.present(secondVC, animated: true, completion: nil)
+        }
     }
     
     // 오토레이아웃의 모든 제약 조건을 계산하고 뷰의 크기와 위치를 확정한 후 호출 되는 함수
