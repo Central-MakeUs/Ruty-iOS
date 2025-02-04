@@ -195,18 +195,45 @@ class OnBoardingMainViewController: UIViewController {
     @objc func goNextPage() {
         // 0 개인 경우 통과 불가
         if selectedCellCnt == 0 {
-            showToast(view: view, "최소 1개의 항목을 선택해 주세요", withDuration: 2.0, delay: 1.5)
+            showToast(view: view, message: "최소 1개의 항목을 선택해 주세요", imageName: "warning-mark", withDuration: 0.5, delay: 1.5)
         }
         // 4개 이상인 경우 통과 불가
         else if selectedCellCnt >= 4 {
-            showToast(view: view, "최대 3개까지만 선택이 가능해요", withDuration: 2.0, delay: 1.5)
+            showToast(view: view, message: "최대 3개까지만 선택이 가능해요", imageName: "warning-mark", withDuration: 0.5, delay: 1.5)
         }
         // 1~3 개인 경우 통과
         else {
+            // GPT Prompt 전달
+            RoutineDataProvider.shared.setGPTParam(prompt: getGPTPrompt())
+            
             let secondVC = LoadingViewController()
+            //let secondVC = RoutineViewController() // 디버깅용
             secondVC.modalPresentationStyle = .fullScreen
             self.present(secondVC, animated: false, completion: nil)
         }
+    }
+    
+    // 선택된 개선하고 싶은 점을 프롬프트 메시지로 변환하여 반환
+    private func getGPTPrompt() -> String {
+        var prompt = ""
+        
+        for row in 0..<tableView.numberOfRows(inSection: 0) {
+            let indexPath = IndexPath(row: row, section: 0)
+            
+            guard let cell = tableView.cellForRow(at: indexPath) as? ImproveSelectTableViewCell else { return "null" }
+            
+            if cell.isChecked == true {
+                if prompt == "" {
+                    prompt += cell.content.text ?? "null"
+                }
+                else {
+                    prompt += ", " + (cell.content.text ?? "null")
+                }
+            }
+        }
+        
+        print("prompt: \(prompt)")
+        return prompt
     }
     
     // MARK: - TableView Func
@@ -268,7 +295,7 @@ extension OnBoardingMainViewController : UITableViewDelegate, UITableViewDataSou
     // cell 선택 최대 개수 넘는지 체크하는 함수
     func checkMaxSelectedCellCnt() {
         if selectedCellCnt >= 4 {
-            showToast(view: view, "최대 3개까지만 선택이 가능해요", withDuration: 2.0, delay: 1.5)
+            showToast(view: view, message: "최대 3개까지만 선택이 가능해요", imageName: "warning-mark", withDuration: 0.5, delay: 1.5)
         }
     }
     

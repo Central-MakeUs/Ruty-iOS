@@ -331,19 +331,3 @@ extension SignUpWriteNameViewController: UITextFieldDelegate {
         return true
     }
 }
-
-extension UITextField {
-    func addLeftPadding() {
-        let paddingView = UIView(frame: CGRect(x: 0, y: 0, width: 16, height: self.frame.height))
-        self.leftView = paddingView
-        self.leftViewMode = ViewMode.always
-    }
-}
-
-extension String {
-    // 글자수 반환
-    func countText() -> Int {
-        // 한글의 자음, 모음 방식을 계산하기 위해 그래픽 단위로 계산
-        return self.precomposedStringWithCanonicalMapping.count
-    }
-}

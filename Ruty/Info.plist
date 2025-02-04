@@ -2,8 +2,12 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>ACCESS_TOKEN</key>
+	<string>$(ACCESS_TOKEN)</string>
 	<key>APPLE_LOGIN_API</key>
 	<string>$(APPLE_LOGIN_API)</string>
+	<key>BASE_API</key>
+	<string>$(BASE_API)</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -13,6 +17,8 @@
 			</array>
 		</dict>
 	</array>
+	<key>CHAT</key>
+	<string>$(CHAT)</string>
 	<key>GIDClientID</key>
 	<string>$(GOOGLE_CLIENT_ID)</string>
 	<key>GOOGLE_LOGIN_API</key>
