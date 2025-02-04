@@ -11,6 +11,8 @@ class RoutineCellTableViewCell: UITableViewCell {
 
     static let identifier = "RoutineCellTableViewCell"
     
+    private var id: Int?
+    
     private let cellBlock = UIView().then {
         $0.backgroundColor = .white
         $0.layer.borderWidth = 1
@@ -40,6 +42,7 @@ class RoutineCellTableViewCell: UITableViewCell {
     private let addRoutineBtnView = UIView().then {
         $0.backgroundColor = UIColor(99, 102, 241, 1)
         $0.layer.cornerRadius = 12
+        $0.isUserInteractionEnabled = true
     }
     
     private let addRoutineBtnLabel = UILabel().then {
@@ -63,7 +66,6 @@ class RoutineCellTableViewCell: UITableViewCell {
     }
     
     func setCellBlockHeight() {
-        //invalidateIntrinsicContentSize()
         routineLabel.sizeToFit()
         descripton.sizeToFit()
         let fitedHeight = routineLabel.frame.size.height + descripton.frame.size.height
@@ -72,7 +74,6 @@ class RoutineCellTableViewCell: UITableViewCell {
         cellBlock.snp.updateConstraints {
             $0.height.equalTo(fitedHeight + 128) // 추천 내용 길이에 따라 동적으로 변화
         }
-        
     }
     
     func updateCellBlockHeight(row: Int) {
@@ -81,6 +82,11 @@ class RoutineCellTableViewCell: UITableViewCell {
         cellBlock.snp.updateConstraints {
             $0.height.equalTo(newHeight + 128) // 추천 내용 길이에 따라 동적으로 변화
         }
+    }
+    
+    func addTarget() {
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(postNotification))
+        addRoutineBtnView.addGestureRecognizer(tapGesture)
     }
     
     func setupLayout() {
@@ -125,16 +131,20 @@ class RoutineCellTableViewCell: UITableViewCell {
             $0.centerY.equalToSuperview()
             $0.left.equalTo(addRoutineBtnMark.snp.right).offset(12)
         }
+        
+        addTarget()
     }
     
-    func setContent(routineName: String, description: String, markImage: String) {
+    func setContent(id: Int, routineName: String, description: String, markImage: String) {
+        self.id = id
         self.routineLabel.text = routineName
         self.descripton.text = description
         self.markImage.image = UIImage(named: markImage)
     }
-//    
-//    func tapCell() {
-//        isChecked = !isChecked
-//    }
 
+    @objc func postNotification() {
+        guard let id = id else { return }
+        guard let routineName = routineLabel.text else { return }
+        NotificationCenter.default.post(name: Notification.Name("moveToGoalSettingVC"), object: nil, userInfo: ["id" : id, "routineName" : routineName])
+    }
 }

@@ -84,6 +84,7 @@ class RoutineViewController: UIViewController {
         setUI()
         setupTableView()
         setLayout()
+        addObserver()
         
         // 실제는 아래 코드 주석빼고 실행
         //routinesData = RoutineDataProvider.shared.loadRoutinesData()
@@ -130,6 +131,10 @@ class RoutineViewController: UIViewController {
     
     override func viewDidAppear(_ animated: Bool) {
         print("view did appear")
+    }
+    
+    private func addObserver() {
+        NotificationCenter.default.addObserver(self, selector: #selector(moveToNextPage(_:)), name: Notification.Name("moveToGoalSettingVC"), object: nil)
     }
     
     private func setupCollectionView() {
@@ -255,6 +260,21 @@ class RoutineViewController: UIViewController {
             $0.height.equalTo(56)
         }
     }
+    
+    @objc func moveToNextPage(_ notification: Notification) {
+        guard let userInfo = notification.userInfo else { return }
+        guard let routineName = userInfo["routineName"] as? String else { return }
+        guard let id = userInfo["id"] as? Int else { return }
+
+        let secondVC = GoalSettingViewController()
+        secondVC.modalPresentationStyle = .fullScreen
+        
+        secondVC.routineViewController = self
+        secondVC.id = id
+        secondVC.routineName = routineName
+        
+        self.present(secondVC, animated: true)
+    }
 }
 
 extension RoutineViewController : UITableViewDelegate, UITableViewDataSource {
@@ -268,7 +288,7 @@ extension RoutineViewController : UITableViewDelegate, UITableViewDataSource {
             return UITableViewCell()
         }
         let item = routinesData[selectedCategoryIndex][indexPath.row]
-        cell.setContent(routineName: item.title, description: item.description, markImage: "housing")
+        cell.setContent(id: item.id, routineName: item.title, description: item.description, markImage: "housing")
         
         // cell 클릭시 보이게 되는 회색 배경색 제거
         let background = UIView()

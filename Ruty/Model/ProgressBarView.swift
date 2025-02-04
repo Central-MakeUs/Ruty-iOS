@@ -44,26 +44,4 @@ final class ProgressBarView: UIView {
     required init?(coder: NSCoder) {
         fatalError()
     }
-    
-    
-    
-}
-
-extension UIColor {
-    convenience init(red: Int, green: Int, blue: Int, alpha: CGFloat = 1.0) {
-        self.init(
-            red: CGFloat(red) / 255.0,
-            green: CGFloat(green) / 255.0,
-            blue: CGFloat(blue) / 255.0,
-            alpha: alpha
-        )
-    }
-    convenience init(_ red: Int, _ green: Int, _ blue: Int, _ alpha: CGFloat = 1.0) {
-        self.init(
-            red: CGFloat(red) / 255.0,
-            green: CGFloat(green) / 255.0,
-            blue: CGFloat(blue) / 255.0,
-            alpha: alpha
-        )
-    }
 }

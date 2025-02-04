@@ -195,11 +195,11 @@ class OnBoardingMainViewController: UIViewController {
     @objc func goNextPage() {
         // 0 개인 경우 통과 불가
         if selectedCellCnt == 0 {
-            showToast(view: view, "최소 1개의 항목을 선택해 주세요", withDuration: 2.0, delay: 1.5)
+            showToast(view: view, message: "최소 1개의 항목을 선택해 주세요", imageName: "warning-mark", withDuration: 0.5, delay: 1.5)
         }
         // 4개 이상인 경우 통과 불가
         else if selectedCellCnt >= 4 {
-            showToast(view: view, "최대 3개까지만 선택이 가능해요", withDuration: 2.0, delay: 1.5)
+            showToast(view: view, message: "최대 3개까지만 선택이 가능해요", imageName: "warning-mark", withDuration: 0.5, delay: 1.5)
         }
         // 1~3 개인 경우 통과
         else {
@@ -295,7 +295,7 @@ extension OnBoardingMainViewController : UITableViewDelegate, UITableViewDataSou
     // cell 선택 최대 개수 넘는지 체크하는 함수
     func checkMaxSelectedCellCnt() {
         if selectedCellCnt >= 4 {
-            showToast(view: view, "최대 3개까지만 선택이 가능해요", withDuration: 2.0, delay: 1.5)
+            showToast(view: view, message: "최대 3개까지만 선택이 가능해요", imageName: "warning-mark", withDuration: 0.5, delay: 1.5)
         }
     }
     
