@@ -74,8 +74,6 @@ class RoutineViewController: UIViewController {
     
     private var selectedCategoryIndex: Int = 0 // 현재 선택된 카테고리
     
-
-    
     private var routinesData = [[Routine]]()
     
     override func viewDidLoad() {
@@ -121,6 +119,9 @@ class RoutineViewController: UIViewController {
     
     override func viewWillAppear(_ animated: Bool) {
         print("view will appear")
+        
+        // 기본 네비게이션바 비활성화
+        navigationController?.setNavigationBarHidden(true, animated: false)
     }
     
     override func viewDidLayoutSubviews() {
@@ -273,7 +274,7 @@ class RoutineViewController: UIViewController {
         secondVC.id = id
         secondVC.routineName = routineName
         
-        self.present(secondVC, animated: true)
+        navigationController?.pushViewController(secondVC, animated: true)
     }
 }
 

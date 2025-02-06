@@ -21,6 +21,7 @@ class GoalSettingViewController: UIViewController {
     
     let backBtn = UIButton().then {
         $0.setImage(UIImage(named: "back"), for: .normal)
+        $0.addTarget(self, action: #selector(goBack), for: .touchUpInside)
     }
     
     let textField = UITextField().then {
@@ -126,6 +127,13 @@ class GoalSettingViewController: UIViewController {
         setTextField()
     }
     
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        // 스와이프 뒤로 가기 제스처 다시 활성화
+        navigationController?.interactivePopGestureRecognizer?.delegate = self
+        navigationController?.interactivePopGestureRecognizer?.isEnabled = true
+    }
     
     // MARK: - Observer Set
     func addObserver() {
@@ -224,11 +232,23 @@ class GoalSettingViewController: UIViewController {
             showToast(view: view, message: "실천할 요일을 설정해 주세요", imageName: "warning-mark", withDuration: 0.5, delay: 1.5)
         }
         else {
-            self.dismiss(animated: true)
-            self.dismiss(animated: true) {
-                showToast(view: self.routineViewController!.view!, message: "루틴 설정 완료", imageName: "Icon-Circle-Check", withDuration: 0.5, delay: 1.5)
+            // completion 지정
+            CATransaction.begin()
+            CATransaction.setCompletionBlock {
+                // 이전 화면으로 돌아간 후에 toast message 보여줌
+                self.showToastAfterPop()
             }
+            navigationController?.popViewController(animated: true)
+            CATransaction.commit()
         }
+    }
+    
+    @objc func goBack() {
+        navigationController?.popViewController(animated: true)
+    }
+    
+    func showToastAfterPop() {
+        showToast(view: self.routineViewController!.view!, message: "루틴 설정 완료", imageName: "Icon-Circle-Check", withDuration: 0.5, delay: 1.5)
     }
     
     func addDay(dayString: String) {
@@ -350,3 +370,8 @@ extension GoalSettingViewController: UITextFieldDelegate {
     }
 }
 
+extension GoalSettingViewController: UIGestureRecognizerDelegate {
+    func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+        return true // 스와이프 제스처 허용
+    }
+}

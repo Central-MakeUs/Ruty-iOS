@@ -189,7 +189,7 @@ class OnBoardingMainViewController: UIViewController {
     }
     
     @objc func goBack() {
-        self.dismiss(animated: false)
+        navigationController?.popViewController(animated: true)
     }
     
     @objc func goNextPage() {
@@ -209,7 +209,7 @@ class OnBoardingMainViewController: UIViewController {
             let secondVC = LoadingViewController()
             //let secondVC = RoutineViewController() // 디버깅용
             secondVC.modalPresentationStyle = .fullScreen
-            self.present(secondVC, animated: false, completion: nil)
+            navigationController?.pushViewController(secondVC, animated: true)
         }
     }
     
@@ -239,7 +239,6 @@ class OnBoardingMainViewController: UIViewController {
     // MARK: - TableView Func
     private func loadData() {
         data = ImproveSelectDataProvider.shared.fetchData()
-        //updateContentViewHeight()
     }
     
     private func setupTableView() {

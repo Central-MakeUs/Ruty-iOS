@@ -135,6 +135,15 @@ class SignUpWriteNameViewController: UIViewController {
         self.progressBarView.ratio = 0.3
     }
     
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        // 스와이프 뒤로 가기 제스처 다시 활성화
+        navigationController?.interactivePopGestureRecognizer?.delegate = self
+        navigationController?.interactivePopGestureRecognizer?.isEnabled = true
+    }
+
+    
     func addTarget() {
         var tapGesture = UITapGestureRecognizer(target: self, action: #selector(goBack))
         backBtn.addGestureRecognizer(tapGesture)
@@ -217,13 +226,14 @@ class SignUpWriteNameViewController: UIViewController {
     }
     
     @objc func goBack() {
-        self.dismiss(animated: false)
+        navigationController?.popViewController(animated: true)
     }
     
     func moveToNextPage() {
         let secondVC = OnBoardingMainViewController()
         secondVC.modalPresentationStyle = .fullScreen
-        self.present(secondVC, animated: false, completion: nil)
+        
+        navigationController?.pushViewController(secondVC, animated: true)
     }
     
     func setTextField() {
@@ -321,13 +331,12 @@ extension SignUpWriteNameViewController: UITextFieldDelegate {
         let text = textField.text ?? ""
         let textCount = text.countText()
         
-        // 최대 글자수 제한
-//        if textCount >= 20 {
-//            return false
-//        }
-        
-        
-        
         return true
+    }
+}
+
+extension SignUpWriteNameViewController: UIGestureRecognizerDelegate {
+    func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+        return true // 스와이프 제스처 허용
     }
 }
