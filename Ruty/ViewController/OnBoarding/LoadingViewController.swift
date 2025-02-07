@@ -9,8 +9,6 @@ import UIKit
 
 class LoadingViewController: UIViewController {
     
-    
-    //var descriptionText = DataManager.shared.userNickName ?? "empty"
     let rotatingView = UIView() // 회전할 뷰
     let rotatingBackgroundView = UIView() // 회전할 뷰의 배경
     
@@ -57,12 +55,22 @@ class LoadingViewController: UIViewController {
         setupRotatingView()
         
         // ai 데이터 생성 대기 시작
-        RoutineDataProvider.shared.startloadAIData {
-            // 생성 완료되면 다음 페이지로 이동
-            let secondVC = RoutineViewController()
-            secondVC.modalPresentationStyle = .fullScreen
-            self.present(secondVC, animated: true, completion: nil)
+        RoutineDataProvider.shared.startloadAIData {         
+            DispatchQueue.main.async {
+                // 생성 완료되면 다음 페이지로 이동
+                let secondVC = RoutineViewController()
+                secondVC.modalPresentationStyle = .fullScreen
+                self.navigationController?.setViewControllers([secondVC], animated: true)
+            }
         }
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        // 스와이프 뒤로 가기 제스처 비활성화
+        navigationController?.interactivePopGestureRecognizer?.delegate = self
+        navigationController?.interactivePopGestureRecognizer?.isEnabled = false
     }
     
     // 오토레이아웃의 모든 제약 조건을 계산하고 뷰의 크기와 위치를 확정한 후 호출 되는 함수
@@ -153,5 +161,11 @@ class LoadingViewController: UIViewController {
             $0.centerX.equalToSuperview()
             $0.top.equalTo(nicknameLabel.snp.bottom).offset(5)
         }
+    }
+}
+
+extension LoadingViewController: UIGestureRecognizerDelegate {
+    func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+        return false // 스와이프 제스처 비활성화
     }
 }

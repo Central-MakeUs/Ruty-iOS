@@ -168,6 +168,13 @@ class SignUpAgreeViewController: UIViewController {
         self.progressBarView.ratio = 0.0
     }
     
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        // 기본 네비게이션바 비활성화
+        navigationController?.setNavigationBarHidden(true, animated: false)
+    }
+    
     func addTargetToLabel() {
         setLinkToLabel(label: agreeRequiredDescription, textToLink: "이용약관")
         setLinkToLabel(label: agreeOptionalDescription, textToLink: "마케팅 활용 및 광고성 정보 수신 동의")
@@ -425,7 +432,7 @@ class SignUpAgreeViewController: UIViewController {
             print("다음 페이지 이동")
             let firstVC = SignUpWriteNameViewController()
             firstVC.modalPresentationStyle = .fullScreen
-            self.present(firstVC, animated: false, completion: nil)
+            navigationController?.pushViewController(firstVC, animated: true)
         }
         else {
             showToast(view: view, message: "필수 약관에 동의해주세요", imageName: "warning-mark", withDuration: 0.5, delay: 1.5)
