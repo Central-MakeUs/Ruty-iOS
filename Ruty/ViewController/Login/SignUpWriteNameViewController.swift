@@ -216,6 +216,23 @@ class SignUpWriteNameViewController: UIViewController {
             print("첫 입력으로 공백은 불가, 다음페이지로 이동 불가")
         }
         else if isNickNameCheckd == 2 || isNickNameCheckd == 3 {
+            
+            let url = NetworkManager.shared.getURL(api: "API_SIGNIN")
+            let param = NetworkManager.SingIn(nickName: "testNickName", isAgree: true)
+            print("requestAPI 넣기전 Request Params: \(param)")
+            // Encodable을 JSON으로 변환
+            guard let jsonData = try? JSONEncoder().encode(param),
+                  var param = try? JSONSerialization.jsonObject(with: jsonData) as? [String: Any] else { return }
+            
+            // NSNumber에서 Bool로 변환
+            if let number = param["isAgree"] as? NSNumber {
+                param["isAgree"] = number.boolValue
+            }
+            
+            NetworkManager.shared.requestAPI(url: url, method: .put, param: param) { data in
+                print("받은 데이터 : \(data)")
+            }
+
             print("다음페이지로 이동")
             DataManager.shared.userNickName = textField.text
             moveToNextPage()

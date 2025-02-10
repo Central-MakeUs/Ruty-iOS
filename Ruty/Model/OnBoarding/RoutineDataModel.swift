@@ -46,6 +46,7 @@ class RoutineDataProvider {
         // Encodable을 JSON으로 변환
         guard let jsonData = try? JSONEncoder().encode(param),
               let param = try? JSONSerialization.jsonObject(with: jsonData) as? [String: Any] else { return }
+        print("gpt Request Params: \(param)")
         
         requestGetAPI(url: url, param: param) {
             self.devideRoutines()

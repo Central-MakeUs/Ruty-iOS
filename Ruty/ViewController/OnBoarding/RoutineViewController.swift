@@ -50,7 +50,7 @@ class RoutineViewController: UIViewController {
     
     private let categoryCollectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
-        layout.scrollDirection = .horizontal // 🔥 가로 스크롤 설정
+        layout.scrollDirection = .horizontal // 가로 스크롤 설정
         layout.minimumLineSpacing = 10       // 셀 간격
         layout.minimumInteritemSpacing = 10  // 아이템 간격
 
@@ -66,6 +66,7 @@ class RoutineViewController: UIViewController {
         $0.setTitle("메인 화면으로 이동", for: .normal)
         $0.titleLabel?.font = UIFont(name: Font.semiBold.rawValue, size: 16)
         $0.setTitleColor(.white, for: .normal)
+        $0.addTarget(self, action: #selector(tapMoveToMainBtn), for: .touchUpInside)
     }
     
     private let categoryType = ["주거", "소비", "여가생활", "자기관리"]
@@ -248,7 +249,7 @@ class RoutineViewController: UIViewController {
         self.categoryCollectionView.snp.makeConstraints {
             $0.top.equalTo(descriptionLabel2.snp.bottom).offset(25)
             $0.left.right.equalToSuperview().inset(20)
-            $0.height.equalTo(38) // 🔥 적절한 높이 설정
+            $0.height.equalTo(38) // 적절한 높이 설정
         }
         
         self.tableView.snp.makeConstraints {
@@ -273,8 +274,19 @@ class RoutineViewController: UIViewController {
         secondVC.routineViewController = self
         secondVC.id = id
         secondVC.routineName = routineName
-        
-        navigationController?.pushViewController(secondVC, animated: true)
+        guard let navigationController = navigationController else {
+            print("네비게이션이 없음")
+            return
+        }
+        navigationController.pushViewController(secondVC, animated: true)
+    }
+    
+    @objc func tapMoveToMainBtn() {
+        DispatchQueue.main.async {
+            let secondVC = MainHomeViewController()
+            secondVC.modalPresentationStyle = .fullScreen
+            self.navigationController?.setViewControllers([secondVC], animated: true)
+        }
     }
 }
 

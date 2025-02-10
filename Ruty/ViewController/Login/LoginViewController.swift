@@ -36,13 +36,21 @@ class LoginViewController: UIViewController {
     }
     
     override func viewDidAppear(_ animated: Bool) {
-        // 회원가입 창으로 이동, 로그인 과정 없애기 위한 디버깅용
-        //self.moveToSignUp()
-        
         // 디버깅 안할땐 주석처리 필수
-        let secondVC = RoutineViewController()
-        secondVC.modalPresentationStyle = .fullScreen
-        self.present(secondVC, animated: true, completion: nil)
+//        let secondVC = RoutineViewController()
+//        secondVC.modalPresentationStyle = .fullScreen
+//        self.present(secondVC, animated: true, completion: nil)
+        
+        // 메인 뷰 디버깅
+        // 디버깅 안할땐 주석처리 필수
+        let dVC = MainHomeViewController()
+        let newNavController = UINavigationController(rootViewController: dVC) // 새로운 네비게이션 컨트롤러 생성
+        newNavController.modalPresentationStyle = .fullScreen
+
+        DispatchQueue.main.async {
+            self.view.window?.rootViewController = newNavController
+            self.view.window?.makeKeyAndVisible()
+        }
     }
     
     func setLayout() {
