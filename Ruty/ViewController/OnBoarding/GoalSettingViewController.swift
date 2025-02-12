@@ -12,12 +12,14 @@ class GoalSettingViewController: UIViewController {
     var routineViewController: RoutineViewController?
     
     var id: Int?
+    var category: String?
+    var routineDescription: String?
     var routineName: String?
     
     let maxTextCount = 50
     
     let days = ["월", "화", "수", "목", "금", "토", "일"]
-    var selectedDays: [String] = []
+    var selectedDays: [String] = [] // 선택된 요일 리스트
     
     let backBtn = UIButton().then {
         $0.setImage(UIImage(named: "back"), for: .normal)
@@ -173,7 +175,7 @@ class GoalSettingViewController: UIViewController {
         sender.value = roundedValue
         
         if sender.value <= 2.0 {
-            sender.value = 2.0
+            sender.value = 2
         }
         else {
             // 1개월 단위 이동 시 진동
@@ -182,7 +184,7 @@ class GoalSettingViewController: UIViewController {
         }
         
         // 라벨 업데이트
-        print("\(Int(roundedValue + 1))개월")
+        print("\(Int(roundedValue - 1))개월")
     }
     
     
@@ -277,17 +279,32 @@ class GoalSettingViewController: UIViewController {
         }
         else {
             let url = NetworkManager.shared.getRequestURL(api: "/api/recommend/\(id!)" )
-            
+
+            selectedDays = selectedDays.map{
+                switch $0 {
+                case "월" : return "MON"
+                case "화" : return "TUE"
+                case "수" : return "WED"
+                case "목" : return "THU"
+                case "금" : return "FRI"
+                case "토" : return "SAT"
+                case "일" : return "SUN"
+                default: return "MON"
+                }
+            }
+
             let jsonBody: [String: Any] = [
-                "title": "test title",
-                "description": "test description",
-                "weekList": ["MON", "TUE"],
-                "category": "HOUSE",
-                "month": 1
+                "title": textField.text ?? "" ,
+                "description": routineDescription ?? "",
+                "weekList": selectedDays,
+                "category": category ?? "HOUSE",
+                "month": Int(slider.value - 1)
             ]
             
+            print("jsonBody: \(jsonBody)")
+            
             NetworkManager.shared.sendRequest(url: url, method: "POST", jsonBody: jsonBody) {
-                print("생성 완료")
+                
                 // completion 지정
                 CATransaction.begin()
                 CATransaction.setCompletionBlock {
@@ -310,16 +327,6 @@ class GoalSettingViewController: UIViewController {
     
     func addDay(dayString: String) {
         selectedDays.append(dayString)
-//        switch dayString {
-//        case "월" : selectedDays.append("월")
-//        case "화" : selectedDays.append("화")
-//        case "수" : selectedDays.append("수")
-//        case "목" : selectedDays.append("목")
-//        case "금" : selectedDays.append("FRI")
-//        case "토" : selectedDays.append("SAT")
-//        case "일" : selectedDays.append("SUN")
-//        default: break
-//        }
     }
     
     func removeDay(dayString: String) {

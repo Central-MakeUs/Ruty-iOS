@@ -13,6 +13,8 @@ class RoutineCellTableViewCell: UITableViewCell {
     
     private var id: Int?
     
+    private var category: String?
+    
     private let cellBlock = UIView().then {
         $0.backgroundColor = .white
         $0.layer.borderWidth = 1
@@ -135,8 +137,9 @@ class RoutineCellTableViewCell: UITableViewCell {
         addTarget()
     }
     
-    func setContent(id: Int, routineName: String, description: String, markImage: String) {
+    func setContent(id: Int, category: String, routineName: String, description: String, markImage: String) {
         self.id = id
+        self.category = category
         self.routineLabel.text = routineName
         self.descripton.text = description
         self.markImage.image = UIImage(named: markImage)
@@ -145,6 +148,12 @@ class RoutineCellTableViewCell: UITableViewCell {
     @objc func postNotification() {
         guard let id = id else { return }
         guard let routineName = routineLabel.text else { return }
-        NotificationCenter.default.post(name: Notification.Name("moveToGoalSettingVC"), object: nil, userInfo: ["id" : id, "routineName" : routineName])
+        guard let description = descripton.text else { return }
+        guard let category = category else { return }
+        NotificationCenter.default.post(name: Notification.Name("moveToGoalSettingVC"), object: nil, userInfo: [
+            "id" : id,
+            "category" : category,
+            "routineName" : routineName,
+            "description" : description])
     }
 }

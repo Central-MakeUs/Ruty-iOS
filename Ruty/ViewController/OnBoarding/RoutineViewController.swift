@@ -86,21 +86,21 @@ class RoutineViewController: UIViewController {
         addObserver()
         
         // 실제는 아래 코드 주석빼고 실행
-        //routinesData = RoutineDataProvider.shared.loadRoutinesData()
+        routinesData = RoutineDataProvider.shared.loadRoutinesData()
         
         //디버깅용
-        routinesData = [[
-            Routine(id: 1, title: "퇴근", description: "배", category: "HOUSE"),
-            Routine(id: 1, title: "집에가고싶어요", description: "이정도 길이면 될까요 이정도 길이면 될까요 이정도 길이면 될까요?", category: "HOUSE"),
-            Routine(id: 1, title: "퇴근 후 나를 위한 한 끼 만들기퇴근 후 나를 위한 한 끼 만들기", description: "배달 음식을 자주 시키는 이유 중 하나는 손쉬운 해결책을 찾는 것인데, 간단한 집밥을 만들어 먹는 습관을 들이면 배달 음식에 대한 의존도를 줄일 수 있습니다.", category: "HOUSE")],
-            [],
-            [Routine(id: 1, title: "여가", description: "생활", category: "LEISURE"),
-            Routine(id: 1, title: "게임하기", description: "겜겜", category: "LEISURE"),
-             Routine(id: 1, title: "게임하기게임하기게임하기게임하기게임하기", description: "게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임", category: "LEISURE")],
-            [Routine(id: 1, title: "자기관리", description: "생활", category: "SELFCARE"),
-            Routine(id: 1, title: "게임하기", description: "겜겜", category: "SELFCARE"),
-            Routine(id: 1, title: "게임하기게임하기게임하기게임하기게임하기", description: "자기관리", category: "SELFCARE")]
-        ]
+//        routinesData = [[
+//            Routine(id: 1, title: "퇴근", description: "배", category: "HOUSE"),
+//            Routine(id: 1, title: "집에가고싶어요", description: "이정도 길이면 될까요 이정도 길이면 될까요 이정도 길이면 될까요?", category: "HOUSE"),
+//            Routine(id: 1, title: "퇴근 후 나를 위한 한 끼 만들기퇴근 후 나를 위한 한 끼 만들기", description: "배달 음식을 자주 시키는 이유 중 하나는 손쉬운 해결책을 찾는 것인데, 간단한 집밥을 만들어 먹는 습관을 들이면 배달 음식에 대한 의존도를 줄일 수 있습니다.", category: "HOUSE")],
+//            [],
+//            [Routine(id: 1, title: "여가", description: "생활", category: "LEISURE"),
+//            Routine(id: 1, title: "게임하기", description: "겜겜", category: "LEISURE"),
+//             Routine(id: 1, title: "게임하기게임하기게임하기게임하기게임하기", description: "게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임", category: "LEISURE")],
+//            [Routine(id: 1, title: "자기관리", description: "생활", category: "SELFCARE"),
+//            Routine(id: 1, title: "게임하기", description: "겜겜", category: "SELFCARE"),
+//            Routine(id: 1, title: "게임하기게임하기게임하기게임하기게임하기", description: "자기관리", category: "SELFCARE")]
+//        ]
         
         appearOnlyExistCategory() // 존재하는 카테고리 종류만 키워드에 노출될 수 있도록 리스트업
         checkFirstCategory() // 화면에 바로 표기할 첫번째 카테고리 index 설정
@@ -267,12 +267,16 @@ class RoutineViewController: UIViewController {
         guard let userInfo = notification.userInfo else { return }
         guard let routineName = userInfo["routineName"] as? String else { return }
         guard let id = userInfo["id"] as? Int else { return }
+        guard let category = userInfo["category"] as? String else { return }
+        guard let description = userInfo["description"] as? String else { return }
 
         let secondVC = GoalSettingViewController()
         secondVC.modalPresentationStyle = .fullScreen
         
         secondVC.routineViewController = self
         secondVC.id = id
+        secondVC.routineDescription = description
+        secondVC.category = category
         secondVC.routineName = routineName
         guard let navigationController = navigationController else {
             print("네비게이션이 없음")
@@ -301,7 +305,8 @@ extension RoutineViewController : UITableViewDelegate, UITableViewDataSource {
             return UITableViewCell()
         }
         let item = routinesData[selectedCategoryIndex][indexPath.row]
-        cell.setContent(id: item.id, routineName: item.title, description: item.description, markImage: "housing")
+        
+        cell.setContent(id: item.id, category: item.category, routineName: item.title, description: item.description, markImage: RoutineCategoryImage.shared[item.category] ?? "housing")
         
         // cell 클릭시 보이게 되는 회색 배경색 제거
         let background = UIView()
