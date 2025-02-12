@@ -25,4 +25,8 @@ extension UIColor {
     struct font {
         static let secondary = UIColor(107, 114, 128, 1)
     }
+    
+    struct fill {
+        static let brand = UIColor(99, 102, 241, 1)
+    }
 }

@@ -136,7 +136,7 @@ class RoutineViewController: UIViewController {
     }
     
     private func addObserver() {
-        NotificationCenter.default.addObserver(self, selector: #selector(moveToNextPage(_:)), name: Notification.Name("moveToGoalSettingVC"), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(moveToSettingPage(_:)), name: Notification.Name("moveToGoalSettingVC"), object: nil)
     }
     
     private func setupCollectionView() {
@@ -263,7 +263,7 @@ class RoutineViewController: UIViewController {
         }
     }
     
-    @objc func moveToNextPage(_ notification: Notification) {
+    @objc func moveToSettingPage(_ notification: Notification) {
         guard let userInfo = notification.userInfo else { return }
         guard let routineName = userInfo["routineName"] as? String else { return }
         guard let id = userInfo["id"] as? Int else { return }

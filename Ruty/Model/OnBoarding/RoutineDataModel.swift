@@ -71,7 +71,7 @@ class RoutineDataProvider {
         }
     }
     
-    private func requestGetAPI(url: String, param: [String : Any], completion :@escaping ()->()) {
+    private func requestGetAPI(url: String, param: Parameters, completion :@escaping ()->()) {
         
         let accessToken = Bundle.main.infoDictionary?["ACCESS_TOKEN"] as! String
         let header: HTTPHeaders = [

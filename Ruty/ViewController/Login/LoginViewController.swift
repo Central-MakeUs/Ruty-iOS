@@ -43,14 +43,14 @@ class LoginViewController: UIViewController {
         
         // 메인 뷰 디버깅
         // 디버깅 안할땐 주석처리 필수
-        let dVC = MainHomeViewController()
-        let newNavController = UINavigationController(rootViewController: dVC) // 새로운 네비게이션 컨트롤러 생성
-        newNavController.modalPresentationStyle = .fullScreen
-
-        DispatchQueue.main.async {
-            self.view.window?.rootViewController = newNavController
-            self.view.window?.makeKeyAndVisible()
-        }
+//        let dVC = RoutineViewController()
+//        let newNavController = UINavigationController(rootViewController: dVC) // 새로운 네비게이션 컨트롤러 생성
+//        newNavController.modalPresentationStyle = .fullScreen
+//
+//        DispatchQueue.main.async {
+//            self.view.window?.rootViewController = newNavController
+//            self.view.window?.makeKeyAndVisible()
+//        }
     }
     
     func setLayout() {
@@ -92,6 +92,14 @@ class LoginViewController: UIViewController {
             let idToken = user?.idToken?.tokenString
             let accessToken = user?.accessToken.tokenString
             let refreshToken = user?.refreshToken.tokenString
+            
+            print("idtoken: \(idToken!)")
+            
+            let url = NetworkManager.shared.getRequestURL(api: "/login/oauth2/code/google")
+            let param : Parameters = ["code" : idToken!]
+            NetworkManager.shared.requestAPI(url: url, method: .post, encoding: JSONEncoding.default, param: param) { data in
+                print("받은 데이터 : \(data)")
+            }
             
             print(email)
             print(name)
@@ -165,16 +173,35 @@ extension LoginViewController: ASAuthorizationControllerDelegate {
             // 토큰 생성 및 삭제에 필요한 데이터
             // 서버와 연결 필요
             let identityToken = appleIdCredential.identityToken // 5분 후 사용불가
-            let authorizationCode = appleIdCredential.authorizationCode // 10분 후 사용불가, 한번만 사용가능
+            
+            //let authorizationCode = appleIdCredential.authorizationCode // 10분 후 사용불가, 한번만 사용가능
+            
+            if let authorizationCodeData = appleIdCredential.authorizationCode,
+               let authorizationCodeString = String(data: authorizationCodeData, encoding: .utf8) {
+                
+                let url = NetworkManager.shared.getRequestURL(api: "/login/oauth2/code/apple")
+                let param : Parameters = ["code" : authorizationCodeString]
+                
+                //let param = NetworkManager.AppleLogin(code: authorizationCodeString)
+                // Encodable을 JSON으로 변환
+//                guard let jsonData = try? JSONEncoder().encode(param),
+//                      var param = try? JSONSerialization.jsonObject(with: jsonData) as? [String: Any] else { return }
+                
+                NetworkManager.shared.requestAPI(url: url, method: .post, encoding: URLEncoding.default, param: param) { data in
+                    print("받은 데이터 : \(data)")
+                }
+                
+            } else {
+                print("authorizationCode 변환에 실패했습니다.")
+            }
             
             print("Apple ID 로그인에 성공하였습니다.")
             print("사용자 ID: \(userIdentifier)")
             print("전체 이름: \(fullName?.givenName ?? "") \(fullName?.familyName ?? "")")
             print("이메일: \(email ?? "")")
             print("Token: \(identityToken!)")
-            print("authorizationCode: \(authorizationCode!)")
-            
-            // 여기에 로그인 성공 후 수행할 작업을 추가하세요.
+            //print("authorizationCode: \(authorizationCode!)")
+
             
             // 회원가입 창으로 이동
             moveToSignUp()

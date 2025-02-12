@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import Alamofire
 
 class SignUpWriteNameViewController: UIViewController {
 
@@ -217,7 +218,7 @@ class SignUpWriteNameViewController: UIViewController {
         }
         else if isNickNameCheckd == 2 || isNickNameCheckd == 3 {
             
-            let url = NetworkManager.shared.getURL(api: "API_SIGNIN")
+            let url = NetworkManager.shared.getRequestURL(api: "/api/member/sign")
             let param = NetworkManager.SingIn(nickName: "testNickName", isAgree: true)
             print("requestAPI 넣기전 Request Params: \(param)")
             // Encodable을 JSON으로 변환
@@ -229,7 +230,7 @@ class SignUpWriteNameViewController: UIViewController {
                 param["isAgree"] = number.boolValue
             }
             
-            NetworkManager.shared.requestAPI(url: url, method: .put, param: param) { data in
+            NetworkManager.shared.requestAPI(url: url, method: .put, encoding: JSONEncoding.default , param: param) { data in
                 print("받은 데이터 : \(data)")
             }
 
