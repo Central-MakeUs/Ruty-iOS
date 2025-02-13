@@ -23,18 +23,15 @@ class NetworkManager {
     
     private init() { }
     
-    func getURL(api: String) -> String {
-        let url = "https://" + (Bundle.main.infoDictionary?["BASE_API"] as! String) + (Bundle.main.infoDictionary?[api] as! String)
-        return url
-    }
-    
     func getRequestURL(api: String) -> String {
         let url = "https://" + (Bundle.main.infoDictionary?["BASE_API"] as! String) + api
         return url
     }
     // param: [String : Any]
     // request body or param 만 있는 경우
-    func requestAPI(url: String, method: HTTPMethod, encoding: ParameterEncoding, param: Parameters, completion : @escaping (Data?) -> ()) {
+    // JSONEncoding.default: 주로 POST, PUT 등의 요청에서 사용하며, 파라미터를 JSON 형태의 본문에 인코딩합니다.
+    // URLEncoding.default: GET 요청에서 URL에 파라미터를 추가하는 데 사용
+    func requestAPI(url: String, method: HTTPMethod, encoding: ParameterEncoding, param: Parameters?, completion : @escaping (Result<Data, Error>) -> Void) {
         let accessToken = Bundle.main.infoDictionary?["ACCESS_TOKEN"] as! String
         let header: HTTPHeaders = [
             "Authorization": "Bearer \(accessToken)",
@@ -43,23 +40,16 @@ class NetworkManager {
         
         AF.request(url,
                    method: method,
-                   parameters: param,
+                   parameters: param ?? nil,
                    encoding: encoding,
                    headers: header)
         .validate(statusCode: 200..<300)
         .responseData { response in
             switch response.result {
             case .success(let data):
-                // Data를 문자열로 변환하여 출력
-                if let jsonString = String(data: data, encoding: .utf8) {
-                    print("JSON 문자열: \(jsonString)")
-                } else {
-                    print("Data를 문자열로 변환할 수 없습니다.")
-                }
-                completion(data)
-                
+                completion(.success(data))
             case .failure(let error):
-                print("네트워크 api 요청 실패: \(error)")
+                completion(.failure(error))
             }
         }
     }

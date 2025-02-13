@@ -230,8 +230,21 @@ class SignUpWriteNameViewController: UIViewController {
                 param["isAgree"] = number.boolValue
             }
             
-            NetworkManager.shared.requestAPI(url: url, method: .put, encoding: JSONEncoding.default , param: param) { data in
-                print("받은 데이터 : \(data)")
+            NetworkManager.shared.requestAPI(url: url, method: .put, encoding: JSONEncoding.default , param: param) { result in
+                
+                switch result {
+                case .success(let data):
+                    // 성공적으로 데이터를 받았을 경우
+                    if let jsonString = String(data: data, encoding: .utf8) {
+                        print("응답 데이터: \(jsonString)")
+                    } else {
+                        print("데이터 변환 실패")
+                    }
+                    
+                case .failure(let error):
+                    // 요청이 실패한 경우
+                    print("API 요청 실패: \(error.localizedDescription)")
+                }
             }
 
             print("다음페이지로 이동")

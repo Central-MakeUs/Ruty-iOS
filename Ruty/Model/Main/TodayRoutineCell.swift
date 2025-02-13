@@ -10,6 +10,9 @@ import UIKit
 class TodayRoutineCell: UITableViewCell {
 
     static let identifier = "TodayRoutineCell"
+    var routineId = 0
+    var category = ""
+    var done = false
     
     let cellBlock = UIView().then {
         $0.backgroundColor = .white
@@ -86,11 +89,19 @@ class TodayRoutineCell: UITableViewCell {
         }
     }
     
-    func setContent(text: String) {
-        content.text = text
+    func setContent(routineId: Int, title: String, category: String, done: Bool) {
+        self.routineId = routineId
+        content.text = title
+        self.category = category
+        self.done = done
+        
+        image.image = UIImage(named: RoutineCategoryImage.shared[category] ?? "housing")
     }
     
-    func tapCell() {
-        isChecked = !isChecked
+    func tapCell(completion: ()->()) {
+        if isChecked == false {
+            completion()
+        }
+        isChecked = true
     }
 }

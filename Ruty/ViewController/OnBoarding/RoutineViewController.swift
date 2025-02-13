@@ -77,6 +77,8 @@ class RoutineViewController: UIViewController {
     
     private var routinesData = [[Routine]]()
     
+    var isReload: Bool = false
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -86,21 +88,21 @@ class RoutineViewController: UIViewController {
         addObserver()
         
         // 실제는 아래 코드 주석빼고 실행
-        routinesData = RoutineDataProvider.shared.loadRoutinesData()
+        //routinesData = RoutineDataProvider.shared.loadRoutinesData()
         
         //디버깅용
-//        routinesData = [[
-//            Routine(id: 1, title: "퇴근", description: "배", category: "HOUSE"),
-//            Routine(id: 1, title: "집에가고싶어요", description: "이정도 길이면 될까요 이정도 길이면 될까요 이정도 길이면 될까요?", category: "HOUSE"),
-//            Routine(id: 1, title: "퇴근 후 나를 위한 한 끼 만들기퇴근 후 나를 위한 한 끼 만들기", description: "배달 음식을 자주 시키는 이유 중 하나는 손쉬운 해결책을 찾는 것인데, 간단한 집밥을 만들어 먹는 습관을 들이면 배달 음식에 대한 의존도를 줄일 수 있습니다.", category: "HOUSE")],
-//            [],
-//            [Routine(id: 1, title: "여가", description: "생활", category: "LEISURE"),
-//            Routine(id: 1, title: "게임하기", description: "겜겜", category: "LEISURE"),
-//             Routine(id: 1, title: "게임하기게임하기게임하기게임하기게임하기", description: "게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임", category: "LEISURE")],
-//            [Routine(id: 1, title: "자기관리", description: "생활", category: "SELFCARE"),
-//            Routine(id: 1, title: "게임하기", description: "겜겜", category: "SELFCARE"),
-//            Routine(id: 1, title: "게임하기게임하기게임하기게임하기게임하기", description: "자기관리", category: "SELFCARE")]
-//        ]
+        routinesData = [[
+            Routine(id: 1, title: "퇴근", description: "배", category: "HOUSE"),
+            Routine(id: 1, title: "집에가고싶어요", description: "이정도 길이면 될까요 이정도 길이면 될까요 이정도 길이면 될까요?", category: "HOUSE"),
+            Routine(id: 1, title: "퇴근 후 나를 위한 한 끼 만들기퇴근 후 나를 위한 한 끼 만들기", description: "배달 음식을 자주 시키는 이유 중 하나는 손쉬운 해결책을 찾는 것인데, 간단한 집밥을 만들어 먹는 습관을 들이면 배달 음식에 대한 의존도를 줄일 수 있습니다.", category: "HOUSE")],
+            [],
+            [Routine(id: 1, title: "여가", description: "생활", category: "LEISURE"),
+            Routine(id: 1, title: "게임하기", description: "겜겜", category: "LEISURE"),
+             Routine(id: 1, title: "게임하기게임하기게임하기게임하기게임하기", description: "게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임", category: "LEISURE")],
+            [Routine(id: 1, title: "자기관리", description: "생활", category: "SELFCARE"),
+            Routine(id: 1, title: "게임하기", description: "겜겜", category: "SELFCARE"),
+            Routine(id: 1, title: "게임하기게임하기게임하기게임하기게임하기", description: "자기관리", category: "SELFCARE")]
+        ]
         
         appearOnlyExistCategory() // 존재하는 카테고리 종류만 키워드에 노출될 수 있도록 리스트업
         checkFirstCategory() // 화면에 바로 표기할 첫번째 카테고리 index 설정
@@ -121,8 +123,19 @@ class RoutineViewController: UIViewController {
     override func viewWillAppear(_ animated: Bool) {
         print("view will appear")
         
-        // 기본 네비게이션바 비활성화
-        navigationController?.setNavigationBarHidden(true, animated: false)
+        // 온보딩에서 현재 뷰를 로드한 경우
+        if !isReload {
+            // 기본 네비게이션바 비활성화
+            navigationController?.setNavigationBarHidden(true, animated: false)
+        }
+        
+        // 메인홈에서 현재 뷰를 다시 로드한 경우
+        else {
+            print("메인홈에서 불러왔습니다")
+            // 스와이프 뒤로 가기 제스처 다시 활성화
+            navigationController?.interactivePopGestureRecognizer?.delegate = self
+            navigationController?.interactivePopGestureRecognizer?.isEnabled = true
+        }
     }
     
     override func viewDidLayoutSubviews() {
@@ -403,5 +416,11 @@ extension RoutineViewController: UICollectionViewDataSource, UICollectionViewDel
         if let cell = collectionView.cellForItem(at: indexPath) as? CategoryCollectionViewCell {
             cell.isClicked = false
         }
+    }
+}
+
+extension RoutineViewController: UIGestureRecognizerDelegate {
+    func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+        return true // 스와이프 제스처 허용
     }
 }

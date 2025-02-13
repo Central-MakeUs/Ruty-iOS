@@ -43,14 +43,14 @@ class LoginViewController: UIViewController {
         
         // 메인 뷰 디버깅
         // 디버깅 안할땐 주석처리 필수
-//        let dVC = RoutineViewController()
-//        let newNavController = UINavigationController(rootViewController: dVC) // 새로운 네비게이션 컨트롤러 생성
-//        newNavController.modalPresentationStyle = .fullScreen
-//
-//        DispatchQueue.main.async {
-//            self.view.window?.rootViewController = newNavController
-//            self.view.window?.makeKeyAndVisible()
-//        }
+        let dVC = MainHomeViewController()
+        let newNavController = UINavigationController(rootViewController: dVC) // 새로운 네비게이션 컨트롤러 생성
+        newNavController.modalPresentationStyle = .fullScreen
+
+        DispatchQueue.main.async {
+            self.view.window?.rootViewController = newNavController
+            self.view.window?.makeKeyAndVisible()
+        }
     }
     
     func setLayout() {
