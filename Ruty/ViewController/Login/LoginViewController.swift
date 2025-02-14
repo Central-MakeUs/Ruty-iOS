@@ -37,20 +37,20 @@ class LoginViewController: UIViewController {
     
     override func viewDidAppear(_ animated: Bool) {
         // 디버깅 안할땐 주석처리 필수
-//        let secondVC = RoutineViewController()
-//        secondVC.modalPresentationStyle = .fullScreen
-//        self.present(secondVC, animated: true, completion: nil)
+        //        let secondVC = RoutineViewController()
+        //        secondVC.modalPresentationStyle = .fullScreen
+        //        self.present(secondVC, animated: true, completion: nil)
         
         // 메인 뷰 디버깅
         // 디버깅 안할땐 주석처리 필수
-        let dVC = MainHomeViewController()
-        let newNavController = UINavigationController(rootViewController: dVC) // 새로운 네비게이션 컨트롤러 생성
-        newNavController.modalPresentationStyle = .fullScreen
-
-        DispatchQueue.main.async {
-            self.view.window?.rootViewController = newNavController
-            self.view.window?.makeKeyAndVisible()
-        }
+        //        let dVC = MainHomeViewController()
+        //        let newNavController = UINavigationController(rootViewController: dVC) // 새로운 네비게이션 컨트롤러 생성
+        //        newNavController.modalPresentationStyle = .fullScreen
+        //
+        //        DispatchQueue.main.async {
+        //            self.view.window?.rootViewController = newNavController
+        //            self.view.window?.makeKeyAndVisible()
+        //        }
     }
     
     func setLayout() {
@@ -69,17 +69,6 @@ class LoginViewController: UIViewController {
     }
     
     @objc func tapGoogleLoginBtn(_ sender: UIButton) {
-        
-        // 외부 사이트 로그인 방식
-//        let api = "https://" + (Bundle.main.infoDictionary?["GOOGLE_LOGIN_API"] as! String)
-//        print(api)
-//        guard let loginURL = URL(string: api) else {
-//            print("Invalid login URL")
-//            return
-//        }
-//        UIApplication.shared.open(loginURL, options: [:], completionHandler: nil)
-        
-        
         // SDK 로그인 방식
         GIDSignIn.sharedInstance.signIn(withPresenting: self) { signInResult, error in
             guard error == nil else { return }
@@ -97,7 +86,7 @@ class LoginViewController: UIViewController {
             
             let url = NetworkManager.shared.getRequestURL(api: "/login/oauth2/code/google")
             let param : Parameters = ["code" : idToken!]
-            NetworkManager.shared.requestAPI(url: url, method: .post, encoding: JSONEncoding.default, param: param) { data in
+            NetworkManager.shared.requestAPI(url: url, method: .post, encoding: URLEncoding.queryString, param: param) { data in
                 print("받은 데이터 : \(data)")
             }
             
@@ -110,18 +99,6 @@ class LoginViewController: UIViewController {
     }
     
     @objc func tapAppleLoginBtn() {
-        // 외부 사이트 로그인 방식
-//        print("Start Apple sign in")
-//        
-//        let api = "https://" + (Bundle.main.infoDictionary?["APPLE_LOGIN_API"] as! String)
-//        print(api)
-//        guard let loginURL = URL(string: api) else {
-//            print("Invalid login URL")
-//            return
-//        }
-//        UIApplication.shared.open(loginURL, options: [:], completionHandler: nil)
-//
-        
         // SDK 로그인 방식
         let provider = ASAuthorizationAppleIDProvider()
         let requset = provider.createRequest()
@@ -133,6 +110,29 @@ class LoginViewController: UIViewController {
         controller.delegate = self
         controller.presentationContextProvider = self
         controller.performRequests()
+    }
+    
+    private func startGoogleLogin() {
+        
+        //https://accounts.google.com/o/oauth2/auth?client_id=[클라이언트ID]
+        //&redirect_uri=https://localhost:8080/auth/google/callback&response_type=code
+        
+        let clientID = "940269824042-2u959abkgam4bs5lbuv2nlrvni0hqgss.apps.googleusercontent.com"
+        let redirectURI = "ruty://callback"
+        let authURL = "https://accounts.google.com/o/oauth2/auth"
+        let scope = "name email"
+        
+        let urlString = URL(string: "\(authURL)?response_type=code&client_id=\(clientID)&redirect_uri=\(redirectURI)")!
+        
+        // URL 인코딩 처리 (scope, redirect_uri 등)
+        let encodedRedirectURI = redirectURI.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)!
+        let encodedScope = scope.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)!
+        
+        let authURLString = "\(authURL)?client_id=\(clientID)&redirect_uri=\(encodedRedirectURI)&response_type=code"
+        
+        if let url = URL(string: authURLString) {
+            UIApplication.shared.open(url)
+        }
     }
     
     func moveToSignUp() {
@@ -173,24 +173,20 @@ extension LoginViewController: ASAuthorizationControllerDelegate {
             // 토큰 생성 및 삭제에 필요한 데이터
             // 서버와 연결 필요
             let identityToken = appleIdCredential.identityToken // 5분 후 사용불가
-            
-            //let authorizationCode = appleIdCredential.authorizationCode // 10분 후 사용불가, 한번만 사용가능
+            let authorizationCode = appleIdCredential.authorizationCode // 10분 후 사용불가, 한번만 사용가능
             
             if let authorizationCodeData = appleIdCredential.authorizationCode,
                let authorizationCodeString = String(data: authorizationCodeData, encoding: .utf8) {
-                
+ 
                 let url = NetworkManager.shared.getRequestURL(api: "/login/oauth2/code/apple")
                 let param : Parameters = ["code" : authorizationCodeString]
                 
-                //let param = NetworkManager.AppleLogin(code: authorizationCodeString)
-                // Encodable을 JSON으로 변환
-//                guard let jsonData = try? JSONEncoder().encode(param),
-//                      var param = try? JSONSerialization.jsonObject(with: jsonData) as? [String: Any] else { return }
-                
-                NetworkManager.shared.requestAPI(url: url, method: .post, encoding: URLEncoding.default, param: param) { data in
+                NetworkManager.shared.requestAPI(url: url, method: .get, encoding: URLEncoding.queryString, param: param) { data in
                     print("받은 데이터 : \(data)")
+                    
+                    // 회원가입 창으로 이동
+                    self.moveToSignUp()
                 }
-                
             } else {
                 print("authorizationCode 변환에 실패했습니다.")
             }
@@ -200,12 +196,7 @@ extension LoginViewController: ASAuthorizationControllerDelegate {
             print("전체 이름: \(fullName?.givenName ?? "") \(fullName?.familyName ?? "")")
             print("이메일: \(email ?? "")")
             print("Token: \(identityToken!)")
-            //print("authorizationCode: \(authorizationCode!)")
 
-            
-            // 회원가입 창으로 이동
-            moveToSignUp()
-            
         default: break
             
         }
