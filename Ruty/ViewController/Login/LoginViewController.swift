@@ -33,6 +33,7 @@ class LoginViewController: UIViewController {
         self.view.backgroundColor = .white
         
         setLayout()
+        
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -43,14 +44,14 @@ class LoginViewController: UIViewController {
         
         // 메인 뷰 디버깅
         // 디버깅 안할땐 주석처리 필수
-        let dVC = MainHomeViewController()
-        let newNavController = UINavigationController(rootViewController: dVC) // 새로운 네비게이션 컨트롤러 생성
-        newNavController.modalPresentationStyle = .fullScreen
-        
-        DispatchQueue.main.async {
-            self.view.window?.rootViewController = newNavController
-            self.view.window?.makeKeyAndVisible()
-        }
+//        let dVC = MainHomeViewController()
+//        let newNavController = UINavigationController(rootViewController: dVC) // 새로운 네비게이션 컨트롤러 생성
+//        newNavController.modalPresentationStyle = .fullScreen
+//        
+//        DispatchQueue.main.async {
+//            self.view.window?.rootViewController = newNavController
+//            self.view.window?.makeKeyAndVisible()
+//        }
     }
     
     func setLayout() {
@@ -73,16 +74,8 @@ class LoginViewController: UIViewController {
         GIDSignIn.sharedInstance.signIn(withPresenting: self) { signInResult, error in
             guard error == nil else { return }
             
-            // If sign in succeeded, display the app's main content View.
-            let email = signInResult?.user.profile?.email ?? ""
-            let name = signInResult?.user.profile?.name ?? ""
-            
             let user = signInResult?.user
             let idToken = user?.idToken?.tokenString
-            let accessToken = user?.accessToken.tokenString
-            let refreshToken = user?.refreshToken.tokenString
-            
-            print("idtoken: \(idToken!)")
             
             let url = NetworkManager.shared.getRequestURL(api: "/login/oauth2/code/google")
             
@@ -94,29 +87,24 @@ class LoginViewController: UIViewController {
                 
                 switch result {
                 case .success(let data):
-                    // 성공적으로 데이터를 받았을 경우
-                    if let jsonString = String(data: data, encoding: .utf8) {
-                        print("응답 데이터: \(jsonString)")
-                    } else {
-                        print("데이터 변환 실패")
+                    do {
+                        let decodedResponse = try JSONDecoder().decode(JSONModel.GoogleLoginResponse.self, from: data)
+                        if decodedResponse.message == "ok" {
+                            // 로그인 성공
+                            // 회원가입 or 메인뷰로 이동
+                            self.loadMemberAgree()
+                        }
+                        else {
+                            print("서버 연결 오류")
+                        }
+                    } catch {
+                        print("JSON 디코딩 오류: \(error)")
                     }
-                    
                 case .failure(let error):
                     // 요청이 실패한 경우
                     print("API 요청 실패: \(error.localizedDescription)")
                 }
             }
-            
-//            let param : Parameters = ["code" : idToken!]
-//            NetworkManager.shared.requestAPI(url: url, method: .post, encoding: URLEncoding.queryString, param: param) { data in
-//                print("받은 데이터 : \(data)")
-//            }
-
-            print(email)
-            print(name)
-            
-            // 회원가입 창으로 이동
-            self.moveToSignUp()
         }
     }
     
@@ -133,30 +121,7 @@ class LoginViewController: UIViewController {
         controller.presentationContextProvider = self
         controller.performRequests()
     }
-    
-    private func startGoogleLogin() {
-        
-        //https://accounts.google.com/o/oauth2/auth?client_id=[클라이언트ID]
-        //&redirect_uri=https://localhost:8080/auth/google/callback&response_type=code
-        
-        let clientID = "940269824042-2u959abkgam4bs5lbuv2nlrvni0hqgss.apps.googleusercontent.com"
-        let redirectURI = "ruty://callback"
-        let authURL = "https://accounts.google.com/o/oauth2/auth"
-        let scope = "name email"
-        
-        let urlString = URL(string: "\(authURL)?response_type=code&client_id=\(clientID)&redirect_uri=\(redirectURI)")!
-        
-        // URL 인코딩 처리 (scope, redirect_uri 등)
-        let encodedRedirectURI = redirectURI.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)!
-        let encodedScope = scope.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)!
-        
-        let authURLString = "\(authURL)?client_id=\(clientID)&redirect_uri=\(encodedRedirectURI)&response_type=code"
-        
-        if let url = URL(string: authURLString) {
-            UIApplication.shared.open(url)
-        }
-    }
-    
+      
     func moveToSignUp() {
         let secondVC = SignUpAgreeViewController()
         secondVC.modalPresentationStyle = .fullScreen
@@ -165,6 +130,44 @@ class LoginViewController: UIViewController {
         let navigationController = UINavigationController(rootViewController: secondVC)
         navigationController.modalPresentationStyle = .fullScreen
         self.present(navigationController, animated: true, completion: nil)
+    }
+    
+    func moveToMainView() {
+        let nextVC = MainHomeViewController()
+        let newNavController = UINavigationController(rootViewController: nextVC)
+        newNavController.modalPresentationStyle = .fullScreen
+        DispatchQueue.main.async {
+            self.view.window?.rootViewController = newNavController
+            self.view.window?.makeKeyAndVisible()
+        }
+    }
+    
+    func loadMemberAgree() {
+        let url = NetworkManager.shared.getRequestURL(api: "/api/member/isAgree")
+        NetworkManager.shared.requestAPI(url: url, method: .get, encoding: URLEncoding.default, param: nil) { result in
+            switch result {
+            case .success(let data):
+                do {
+                    let decodedResponse = try JSONDecoder().decode(JSONModel.Sign.self, from: data)
+                    
+                    // 회원가입이 필요함
+                    if decodedResponse.data == nil {
+                        self.moveToSignUp() // 회원가입 창으로 이동
+                    }
+                    
+                    // 회원가입 완료됨
+                    else {
+                        self.moveToMainView() // 메인화면으로 이동
+                    }
+                    
+                } catch {
+                    print("JSON 디코딩 오류: \(error)")
+                }
+            case .failure(let error):
+                // 요청이 실패한 경우
+                print("API 요청 실패: \(error.localizedDescription)")
+            }
+        }
     }
 }
 
@@ -206,31 +209,13 @@ extension LoginViewController: ASAuthorizationControllerDelegate {
                 NetworkManager.shared.requestAPI(url: url, method: .get, encoding: URLEncoding.queryString, param: param) { data in
                     print("받은 데이터 : \(data)")
                     
-                    // 회원가입 창으로 이동
-                    self.moveToSignUp()
-                    
-                    // 디버깅용
-//                    let dVC = MainHomeViewController()
-//                    let newNavController = UINavigationController(rootViewController: dVC) // 새로운 네비게이션 컨트롤러 생성
-//                    newNavController.modalPresentationStyle = .fullScreen
-//                    
-//                    DispatchQueue.main.async {
-//                        self.view.window?.rootViewController = newNavController
-//                        self.view.window?.makeKeyAndVisible()
-//                    }
+                    self.loadMemberAgree()
                 }
             } else {
                 print("authorizationCode 변환에 실패했습니다.")
             }
-            
-            print("Apple ID 로그인에 성공하였습니다.")
-            print("사용자 ID: \(userIdentifier)")
-            print("전체 이름: \(fullName?.givenName ?? "") \(fullName?.familyName ?? "")")
-            print("이메일: \(email ?? "")")
-            print("Token: \(identityToken!)")
 
         default: break
-            
         }
     }
 }

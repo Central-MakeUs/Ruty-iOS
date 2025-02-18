@@ -11,6 +11,7 @@ import Alamofire
 class SignUpWriteNameViewController: UIViewController {
 
     private let maxLength = 20
+    var isAgree = false
     
     let navigationView = UIView().then {
         $0.backgroundColor = .clear
@@ -219,7 +220,7 @@ class SignUpWriteNameViewController: UIViewController {
         else if isNickNameCheckd == 2 || isNickNameCheckd == 3 {
             
             let url = NetworkManager.shared.getRequestURL(api: "/api/member/sign")
-            let param = NetworkManager.SingIn(nickName: "testNickName", isAgree: true)
+            let param = NetworkManager.SingIn(nickName: "testNickName", isAgree: isAgree)
             print("requestAPI 넣기전 Request Params: \(param)")
             // Encodable을 JSON으로 변환
             guard let jsonData = try? JSONEncoder().encode(param),

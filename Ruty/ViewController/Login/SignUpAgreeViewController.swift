@@ -431,6 +431,7 @@ class SignUpAgreeViewController: UIViewController {
         if isRequiredAgree {
             print("다음 페이지 이동")
             let firstVC = SignUpWriteNameViewController()
+            firstVC.isAgree = isOptionalAgree
             firstVC.modalPresentationStyle = .fullScreen
             navigationController?.pushViewController(firstVC, animated: true)
         }
