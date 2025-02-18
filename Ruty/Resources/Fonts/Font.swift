@@ -18,3 +18,10 @@ enum Font : String {
     case extraBold = "Pretendard-ExtraBold"
     case black = "Pretendard-Black"
 }
+
+let categoryIndex: [String: Int] = [
+    "HOUSE": 0,
+    "MONEY": 1,
+    "LEISURE": 2,
+    "SELFCARE": 3
+]

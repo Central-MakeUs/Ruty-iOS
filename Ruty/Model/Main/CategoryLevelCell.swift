@@ -59,7 +59,6 @@ class CategoryLevelCell: UICollectionViewCell {
         cellBlock.snp.makeConstraints {
             $0.left.top.bottom.equalToSuperview()
             $0.right.equalToSuperview()
-            //$0.height.equalTo(100)
             $0.width.equalTo(88)
         }
         
@@ -76,7 +75,6 @@ class CategoryLevelCell: UICollectionViewCell {
         
         categoryBox.snp.makeConstraints {
             $0.top.equalTo(gaugeView.snp.bottom).offset(8)
-            //$0.right.left.equalToSuperview()
             $0.centerX.equalToSuperview()
         }
         
@@ -92,7 +90,7 @@ class CategoryLevelCell: UICollectionViewCell {
         }
     }
     
-    private func setupLayers() {
+    func setupLayers() {
         let circlePath = UIBezierPath(ovalIn: gaugeView.bounds)
         
         // 배경 원 설정
@@ -102,7 +100,6 @@ class CategoryLevelCell: UICollectionViewCell {
         
         // 채우기 원 설정
         fillLayer.path = circlePath.cgPath
-        fillLayer.fillColor = UIColor.RoutineCategoryColor.house.cgColor
         fillLayer.mask = createMaskLayer()
         gaugeView.layer.addSublayer(fillLayer)
     }
@@ -144,19 +141,24 @@ class CategoryLevelCell: UICollectionViewCell {
     }
     
     func setContent(category: String, point: Int) {
+        print("category: \(category), point : \(point)")
         switch category {
         case "HOUSE":
             categoryIcon.image = UIImage(named: "housing")
             categoryLabel.text = "주거"
+            fillLayer.fillColor = UIColor.RoutineCategoryColor.house.cgColor
         case "MONEY":
             categoryIcon.image = UIImage(named: "money-icon")
             categoryLabel.text = "소비"
+            fillLayer.fillColor = UIColor.RoutineCategoryColor.money.cgColor
         case "LEISURE":
             categoryIcon.image = UIImage(named: "leisure-icon")
             categoryLabel.text = "여가생활"
+            fillLayer.fillColor = UIColor.RoutineCategoryColor.leisure.cgColor
         case "SELFCARE":
             categoryIcon.image = UIImage(named: "selfCare-icon")
             categoryLabel.text = "자기관리"
+            fillLayer.fillColor = UIColor.RoutineCategoryColor.selfcare.cgColor
         default: break
         }
         
@@ -171,7 +173,7 @@ class CategoryLevelCell: UICollectionViewCell {
         progress = CGFloat(pointPercent)
     }
     
-    // 레벨
+    // 레벨, 현제 레벨에서의 진행도 퍼센트 반환
     func getLevelAndPercent(level: Int , point: Int, sumPoint: Int) -> (Int, Float) {
         var pointForLevelUp = (level - 1) * 15 // 15점
         var rangeStartPoint = sumPoint // 5점
