@@ -75,7 +75,7 @@ class RoutineViewController: UIViewController {
     
     private var selectedCategoryIndex: Int = 0 // 현재 선택된 카테고리
     
-    private var routinesData = [[Routine]]()
+    private var routinesData = [[JSONModel.RecommendedRoutine]]()
     
     var isReload: Bool = false
     
@@ -88,21 +88,10 @@ class RoutineViewController: UIViewController {
         addObserver()
         
         // 실제는 아래 코드 주석빼고 실행
-        //routinesData = RoutineDataProvider.shared.loadRoutinesData()
+        setAIData()
         
         //디버깅용
-        routinesData = [[
-            Routine(id: 1, title: "퇴근", description: "배", category: "HOUSE"),
-            Routine(id: 1, title: "집에가고싶어요", description: "이정도 길이면 될까요 이정도 길이면 될까요 이정도 길이면 될까요?", category: "HOUSE"),
-            Routine(id: 1, title: "퇴근 후 나를 위한 한 끼 만들기퇴근 후 나를 위한 한 끼 만들기", description: "배달 음식을 자주 시키는 이유 중 하나는 손쉬운 해결책을 찾는 것인데, 간단한 집밥을 만들어 먹는 습관을 들이면 배달 음식에 대한 의존도를 줄일 수 있습니다.", category: "HOUSE")],
-            [],
-            [Routine(id: 1, title: "여가", description: "생활", category: "LEISURE"),
-            Routine(id: 1, title: "게임하기", description: "겜겜", category: "LEISURE"),
-             Routine(id: 1, title: "게임하기게임하기게임하기게임하기게임하기", description: "게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임", category: "LEISURE")],
-            [Routine(id: 1, title: "자기관리", description: "생활", category: "SELFCARE"),
-            Routine(id: 1, title: "게임하기", description: "겜겜", category: "SELFCARE"),
-            Routine(id: 1, title: "게임하기게임하기게임하기게임하기게임하기", description: "자기관리", category: "SELFCARE")]
-        ]
+        //setMetaData()
         
         appearOnlyExistCategory() // 존재하는 카테고리 종류만 키워드에 노출될 수 있도록 리스트업
         checkFirstCategory() // 화면에 바로 표기할 첫번째 카테고리 index 설정
@@ -113,11 +102,7 @@ class RoutineViewController: UIViewController {
         // tableView 의 스크롤은 안되더라도 클릭 제스쳐는 작동하게함
         contentScrollView.panGestureRecognizer.require(toFail: tableView.panGestureRecognizer)
         
-        // 처음 0번째 카테고리 셀을 선택된 상태로 설정
-        // 처음에 카테고리를 클릭하지 않아도 첫번재 카테고리가 자동으로 선택되어 있게 함
-        let firstIndexPath = IndexPath(item: 0, section: 0)
-        categoryCollectionView.selectItem(at: firstIndexPath, animated: false, scrollPosition: .left)
-        
+        if appearCategory.count != 0 { selectFirstCategory() }
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -163,6 +148,13 @@ class RoutineViewController: UIViewController {
         tableView.dataSource = self
         tableView.separatorStyle = .none // cell 라인 없애기
         tableView.register(RoutineCellTableViewCell.self, forCellReuseIdentifier: RoutineCellTableViewCell.identifier)
+    }
+    
+    // 처음 0번째 카테고리 셀을 선택된 상태로 설정
+    // 처음에 카테고리를 클릭하지 않아도 첫번재 카테고리가 자동으로 선택되어 있게 함
+    func selectFirstCategory() {
+        let firstIndexPath = IndexPath(item: 0, section: 0)
+        categoryCollectionView.selectItem(at: firstIndexPath, animated: false, scrollPosition: .left)
     }
     
     // 존재하는 카테고리 종류만 키워드에 노출될 수 있도록 리스트업
@@ -266,7 +258,8 @@ class RoutineViewController: UIViewController {
         }
         
         self.tableView.snp.makeConstraints {
-            $0.top.equalTo(categoryCollectionView.snp.bottom).offset(25)
+            //$0.top.equalTo(categoryCollectionView.snp.bottom).offset(25)
+            $0.top.equalToSuperview().offset(213)
             $0.bottom.left.right.equalToSuperview()
         }
         
@@ -304,6 +297,27 @@ class RoutineViewController: UIViewController {
             secondVC.modalPresentationStyle = .fullScreen
             self.navigationController?.setViewControllers([secondVC], animated: true)
         }
+    }
+    
+    // MARK: - Debugging func
+    func setMetaData() {
+        routinesData = [[
+            JSONModel.RecommendedRoutine(id: 1, title: "퇴근", description: "배", category: "HOUSE"),
+            JSONModel.RecommendedRoutine(id: 1, title: "집에가고싶어요", description: "이정도 길이면 될까요 이정도 길이면 될까요 이정도 길이면 될까요?", category: "HOUSE"),
+            JSONModel.RecommendedRoutine(id: 1, title: "퇴근 후 나를 위한 한 끼 만들기퇴근 후 나를 위한 한 끼 만들기", description: "배달 음식을 자주 시키는 이유 중 하나는 손쉬운 해결책을 찾는 것인데, 간단한 집밥을 만들어 먹는 습관을 들이면 배달 음식에 대한 의존도를 줄일 수 있습니다.", category: "HOUSE")],
+            [],
+            [JSONModel.RecommendedRoutine(id: 1, title: "여가", description: "생활", category: "LEISURE"),
+             JSONModel.RecommendedRoutine(id: 1, title: "게임하기", description: "겜겜", category: "LEISURE"),
+             JSONModel.RecommendedRoutine(id: 1, title: "게임하기게임하기게임하기게임하기게임하기", description: "게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임하기게임", category: "LEISURE")],
+            [JSONModel.RecommendedRoutine(id: 1, title: "자기관리", description: "생활", category: "SELFCARE"),
+             JSONModel.RecommendedRoutine(id: 1, title: "게임하기", description: "겜겜", category: "SELFCARE"),
+             JSONModel.RecommendedRoutine(id: 1, title: "게임하기게임하기게임하기게임하기게임하기", description: "자기관리", category: "SELFCARE")]
+        ]
+    }
+    
+    func setAIData() {
+        routinesData = RoutineDataProvider.shared.loadRoutinesData()
+        print("routinesData 테스트 \(routinesData)")
     }
 }
 

@@ -61,6 +61,11 @@ class TodayRoutineCell: UITableViewCell {
         fatalError("init(coder:) has not been implemented")
     }
     
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        isChecked = false
+    }
+    
     private func setupLayout() {
         [cellBlock].forEach({ contentView.addSubview($0) })
         [image, content, checkImage].forEach({ cellBlock.addSubview($0) })

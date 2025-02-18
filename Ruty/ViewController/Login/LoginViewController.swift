@@ -43,14 +43,14 @@ class LoginViewController: UIViewController {
         
         // 메인 뷰 디버깅
         // 디버깅 안할땐 주석처리 필수
-        //        let dVC = MainHomeViewController()
-        //        let newNavController = UINavigationController(rootViewController: dVC) // 새로운 네비게이션 컨트롤러 생성
-        //        newNavController.modalPresentationStyle = .fullScreen
-        //
-        //        DispatchQueue.main.async {
-        //            self.view.window?.rootViewController = newNavController
-        //            self.view.window?.makeKeyAndVisible()
-        //        }
+        let dVC = MainHomeViewController()
+        let newNavController = UINavigationController(rootViewController: dVC) // 새로운 네비게이션 컨트롤러 생성
+        newNavController.modalPresentationStyle = .fullScreen
+        
+        DispatchQueue.main.async {
+            self.view.window?.rootViewController = newNavController
+            self.view.window?.makeKeyAndVisible()
+        }
     }
     
     func setLayout() {
@@ -85,11 +85,33 @@ class LoginViewController: UIViewController {
             print("idtoken: \(idToken!)")
             
             let url = NetworkManager.shared.getRequestURL(api: "/login/oauth2/code/google")
-            let param : Parameters = ["code" : idToken!]
-            NetworkManager.shared.requestAPI(url: url, method: .post, encoding: URLEncoding.queryString, param: param) { data in
-                print("받은 데이터 : \(data)")
+            
+            let param = NetworkManager.GoogleLogin(platformType: "ios", code: idToken!)
+            guard let jsonData = try? JSONEncoder().encode(param),
+                  var param = try? JSONSerialization.jsonObject(with: jsonData) as? [String: Any] else { return }
+            
+            NetworkManager.shared.requestAPI(url: url, method: .post, encoding: JSONEncoding.default , param: param) { result in
+                
+                switch result {
+                case .success(let data):
+                    // 성공적으로 데이터를 받았을 경우
+                    if let jsonString = String(data: data, encoding: .utf8) {
+                        print("응답 데이터: \(jsonString)")
+                    } else {
+                        print("데이터 변환 실패")
+                    }
+                    
+                case .failure(let error):
+                    // 요청이 실패한 경우
+                    print("API 요청 실패: \(error.localizedDescription)")
+                }
             }
             
+//            let param : Parameters = ["code" : idToken!]
+//            NetworkManager.shared.requestAPI(url: url, method: .post, encoding: URLEncoding.queryString, param: param) { data in
+//                print("받은 데이터 : \(data)")
+//            }
+
             print(email)
             print(name)
             
@@ -186,6 +208,16 @@ extension LoginViewController: ASAuthorizationControllerDelegate {
                     
                     // 회원가입 창으로 이동
                     self.moveToSignUp()
+                    
+                    // 디버깅용
+//                    let dVC = MainHomeViewController()
+//                    let newNavController = UINavigationController(rootViewController: dVC) // 새로운 네비게이션 컨트롤러 생성
+//                    newNavController.modalPresentationStyle = .fullScreen
+//                    
+//                    DispatchQueue.main.async {
+//                        self.view.window?.rootViewController = newNavController
+//                        self.view.window?.makeKeyAndVisible()
+//                    }
                 }
             } else {
                 print("authorizationCode 변환에 실패했습니다.")

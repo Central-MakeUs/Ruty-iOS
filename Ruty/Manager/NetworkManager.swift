@@ -19,6 +19,11 @@ class NetworkManager {
         let code: String
     }
     
+    struct GoogleLogin: Encodable {
+        let platformType: String
+        let code: String
+    }
+    
     static let shared = NetworkManager()
     
     private init() { }
@@ -30,7 +35,7 @@ class NetworkManager {
     // param: [String : Any]
     // request body or param 만 있는 경우
     // JSONEncoding.default: 주로 POST, PUT 등의 요청에서 사용하며, 파라미터를 JSON 형태의 본문에 인코딩합니다.
-    // URLEncoding.default: GET 요청에서 URL에 파라미터를 추가하는 데 사용
+    // URLEncoding.default: GET 요청에서 URL에 파라미터를 추가하는 데 사용, 쿼리 파라미터를 url 에 추가하는 경우
     func requestAPI(url: String, method: HTTPMethod, encoding: ParameterEncoding, param: Parameters?, completion : @escaping (Result<Data, Error>) -> Void) {
         let accessToken = Bundle.main.infoDictionary?["ACCESS_TOKEN"] as! String
         let header: HTTPHeaders = [

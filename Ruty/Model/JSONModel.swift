@@ -8,7 +8,7 @@
 import Foundation
 
 class JSONModel {
-    struct TodayRoutine: Codable {
+    struct Routines: Codable {
         let message: String
         let data: [Routine]
     }
@@ -18,5 +18,16 @@ class JSONModel {
         let title: String
         let category: String
         let done: Bool
+    }
+    
+    struct RecommendedRoutines: Codable {
+        let message: String
+        let data: [RecommendedRoutine]
+    }
+    struct RecommendedRoutine: Codable {
+        let id: Int
+        let title: String
+        let description: String
+        let category: String
     }
 }

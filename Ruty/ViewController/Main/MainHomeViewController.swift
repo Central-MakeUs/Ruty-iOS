@@ -19,7 +19,7 @@ class MainHomeViewController: UIViewController {
     }
     
     private let contentScrollView = UIScrollView().then {
-        $0.backgroundColor = .clear//UIColor.background.secondary
+        $0.backgroundColor = .clear
         $0.showsVerticalScrollIndicator = false
     }
     
@@ -73,16 +73,15 @@ class MainHomeViewController: UIViewController {
         $0.setTitleColor(UIColor.font.primary, for: .normal)
         $0.addTarget(self, action: #selector(tapRecommendRoutineBtn), for: .touchUpInside)
     }
-    
-    
-    
-    private var todayRoutineData = JSONModel.TodayRoutine(message: "", data: []) // 모든 오늘의 루틴 데이터
+
+    private var todayRoutineData = JSONModel.Routines(message: "", data: []) // 모든 오늘의 루틴 데이터
     private var sortedTodayRoutineData = [[JSONModel.Routine]](repeating: [JSONModel.Routine](), count: 4) // 카테고리별 정렬 & 완료된 루틴은 삭제된 루틴 데이터
     private var showTodayRoutineData = [JSONModel.Routine]() // 사용자에게 보여질 루트 데이터
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        loadData()
+        loadAllData()
+        loadTodayData()
         setUI()
         setupCollectionView()
         setupTableView()
@@ -98,23 +97,23 @@ class MainHomeViewController: UIViewController {
     }
     
     // MARK: - api 요청
-    func loadData() {
+    // 오늘의 루틴 요청
+    func loadTodayData() {
         let url = NetworkManager.shared.getRequestURL(api: "/api/routine/today")
         NetworkManager.shared.requestAPI(url: url, method: .get, encoding: URLEncoding.default, param: nil) { result in
             switch result {
             case .success(let data):
                 do {
-                    let decodedResponse = try JSONDecoder().decode(JSONModel.TodayRoutine.self, from: data)
+                    let decodedResponse = try JSONDecoder().decode(JSONModel.Routines.self, from: data)
                     self.todayRoutineData = decodedResponse
                     print("todayRoutineData: \(self.todayRoutineData)")
                     
                     self.sortTodayRoutineData()
-                    self.makeInnvisibleDoneRutine()
                     self.makeShowTodayRoutine()
                     
                     self.tableView.reloadData()
                 } catch {
-                    print("JSON 디코딩 오류: \(error)")
+                    print("오늘의 루틴 데이터 JSON 디코딩 오류: \(error)")
                 }
                 
             case .failure(let error):
@@ -124,46 +123,65 @@ class MainHomeViewController: UIViewController {
         }
     }
      
-    // 루틴 카테고리별로 정렬
-    private func sortTodayRoutineData() {
-        for item in todayRoutineData.data {
-            switch item.category {
-            case "HOUSE" : sortedTodayRoutineData[0].append(item)
-            case "MONEY" : sortedTodayRoutineData[1].append(item)
-            case "LEISURE" : sortedTodayRoutineData[2].append(item)
-            case "SELFCARE" : sortedTodayRoutineData[3].append(item)
-            default: break
+    // 사용자의 모든 루틴 요청
+    func loadAllData() {
+        let url = NetworkManager.shared.getRequestURL(api: "/api/routine")
+        NetworkManager.shared.requestAPI(url: url, method: .get, encoding: URLEncoding.default, param: nil) { result in
+            switch result {
+            case .success(let data):
+                if let jsonString = String(data: data, encoding: .utf8) {
+                    print("모든 루틴 JSON 문자열: \(jsonString)")
+                } else {
+                    print("Data를 문자열로 변환할 수 없습니다.")
+                }
+                
+            case .failure(let error):
+                // 요청이 실패한 경우
+                print("API 요청 실패: \(error.localizedDescription)")
             }
         }
     }
     
-    // 완료된 루틴은 오늘의 루틴 목록에서 제거
-    private func makeInnvisibleDoneRutine() {
-        for category in 0..<sortedTodayRoutineData.count {
-            for (index,item) in sortedTodayRoutineData[category].enumerated() {
-                if item.done == true {
-                    sortedTodayRoutineData.remove(at: index)
+    // 루틴 카테고리별로 정렬, 완료된 루틴은 제외
+    private func sortTodayRoutineData() {
+        // sortedTodayRoutineData 초기화
+        sortedTodayRoutineData = [[JSONModel.Routine]](repeating: [JSONModel.Routine](), count: 4)
+        
+        for item in todayRoutineData.data {
+            if item.done == false {
+                switch item.category {
+                case "HOUSE" : sortedTodayRoutineData[0].append(item)
+                case "MONEY" : sortedTodayRoutineData[1].append(item)
+                case "LEISURE" : sortedTodayRoutineData[2].append(item)
+                case "SELFCARE" : sortedTodayRoutineData[3].append(item)
+                default: break
                 }
             }
         }
+        print("sortedTodayRoutineData 정렬, done 제거됨:  \(sortedTodayRoutineData)")
     }
     
     // 사용자에게 보여줄 루틴 데이터 하나의 리스트로 정리
     private func makeShowTodayRoutine() {
+        showTodayRoutineData = [JSONModel.Routine]() // showTodayRoutineData 초기화
+        
         for routines in sortedTodayRoutineData {
             showTodayRoutineData += routines
         }
     }
     
-    
     // MARK: - addObserver Func
     
     @objc func tapRecommendRoutineBtn() {
         print("추천 루틴 페이지로 이동")
-        let nextVC = RoutineViewController()
-        nextVC.modalPresentationStyle = .fullScreen
-        nextVC.isReload = true
-        navigationController?.pushViewController(nextVC, animated: true)
+        
+        
+        RoutineDataProvider.shared.loadRecommendedData {
+            let nextVC = RoutineViewController()
+            nextVC.modalPresentationStyle = .fullScreen
+            nextVC.isReload = true
+            self.navigationController?.pushViewController(nextVC, animated: true)
+        }
     }
     
     // MARK: - layout, ui set
@@ -174,10 +192,17 @@ class MainHomeViewController: UIViewController {
         tableView.sizeToFit()
         let tableViewHeight = tableView.contentSize.height
         print("tableViewHeight \(tableViewHeight)")
-        let contentHeight = tableViewHeight
+        var contentHeight = tableViewHeight
                             + 291 // 상단부 고정된 간격
                             + 156 // 하단 버튼들 고정된 간격
         print("contentHeight \(contentHeight)")
+        
+        // 스크롤뷰 콘텐츠 최소 길이를 기기 화면 크기로 지정
+        let screenHeight = view.safeAreaLayoutGuide.layoutFrame.height
+        if contentHeight < screenHeight {
+            contentHeight = screenHeight
+        }
+        
         // 스크롤뷰의 콘텐츠 크기 업데이트
         contentScrollView.contentSize = CGSize(width: contentScrollView.frame.width, height: contentHeight)
         
@@ -221,7 +246,6 @@ class MainHomeViewController: UIViewController {
             $0.top.bottom.right.left.equalTo(self.view.safeAreaLayoutGuide)
         }
         
-        
         self.contentView.snp.makeConstraints {
             $0.top.bottom.right.left.equalToSuperview()
             $0.width.equalToSuperview()
@@ -253,7 +277,7 @@ class MainHomeViewController: UIViewController {
         }
         
         self.recommendRoutineBtn.snp.makeConstraints {
-            $0.bottom.equalTo(tableView.snp.bottom)
+            $0.bottom.equalTo(tableView.snp.bottom).inset(20)
             $0.left.right.equalToSuperview().inset(20)
             $0.height.equalTo(48)
         }
@@ -270,6 +294,35 @@ class MainHomeViewController: UIViewController {
         view.backgroundColor = UIColor.background.secondary
         // 기본 네비게이션바 비활성화
         navigationController?.setNavigationBarHidden(true, animated: false)
+    }
+
+    // 완료된 루틴 실행 취소
+    func undoDoneRoutine() {
+        
+    }
+    
+    // 완료한 루틴 오늘의 루틴 리스트에서 삭제
+    func blindDoneTodayRoutine(routineId: Int) {
+        print("routineId: \(routineId)")
+        let url = NetworkManager.shared.getRequestURL(api: "/api/routine/\(routineId)/state")
+        NetworkManager.shared.requestAPI(url: url, method: .put, encoding: URLEncoding.queryString, param: nil) { result in
+            switch result {
+            case .success(let data):
+                // 성공적으로 데이터를 받았을 경우
+                if let jsonString = String(data: data, encoding: .utf8) {
+                    print("응답 데이터: \(jsonString)")
+                } else {
+                    print("데이터 변환 실패")
+                }
+                
+                // 루틴 삭제후 테이블 fetch
+                self.loadTodayData()
+                
+            case .failure(let error):
+                // 요청이 실패한 경우
+                print("API 요청 실패: \(error.localizedDescription)")
+            }
+        }
     }
 }
 
@@ -292,8 +345,6 @@ extension MainHomeViewController : UITableViewDelegate, UITableViewDataSource {
         background.backgroundColor = .clear
         cell.selectedBackgroundView = background
         
-        //cell.setupLayout()
-        
         return cell
     }
     
@@ -301,16 +352,30 @@ extension MainHomeViewController : UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         print("Selected row: \(indexPath.row)")
         
+        var isClickedUndo = false
+        
         // 클릭한 cell 에 접근
         if let selectedCell = tableView.cellForRow(at: indexPath) as? TodayRoutineCell {
             selectedCell.tapCell {
-                showToast(view: view, message: "루틴 완료", imageName: "Icon-Circle-Check", withDuration: 0.5, delay: 3.0)
+                showToast(view: view, message: "루틴 완료", imageName: "Icon-Circle-Check", withDuration: 0.5, delay: 4.0, buttonTitle: "실행 취소") {
+                    // 완료된 루틴 실행 취소
+                    self.undoDoneRoutine()
+                    isClickedUndo = true
+                    
+                    // 루틴 cell check 표기 복구
+                    selectedCell.isChecked = false
+                    
+                } nonClickAction: {
+                    // 루틴 실행 취소를 누르지 않은 경우에
+                    // 완료된 루틴 리스트에서 삭제
+                    if !isClickedUndo {
+                        self.blindDoneTodayRoutine(routineId: selectedCell.routineId)
+                    }
+                }
             }
         }
-        
         tableView.deselectRow(at: indexPath, animated: true)
     }
-    
 }
 
 extension MainHomeViewController: UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
@@ -322,8 +387,6 @@ extension MainHomeViewController: UICollectionViewDataSource, UICollectionViewDe
         guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: CategoryLevelCell.identifier, for: indexPath) as? CategoryLevelCell else {
             return UICollectionViewCell()
         }
-        
-        //cell.progress = 0.7
         cell.setContent(category: "MONEY", point: 20)
         return cell
     }
