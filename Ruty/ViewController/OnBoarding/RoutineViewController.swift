@@ -42,6 +42,14 @@ class RoutineViewController: UIViewController {
         $0.numberOfLines = 1
     }
     
+    private let emptyLabel = UILabel().then {
+        $0.text = "추천받은 모든 루틴을 추가했어요"
+        $0.textColor = UIColor.font.tertiary
+        $0.textAlignment = .center
+        $0.font = UIFont(name: Font.regular.rawValue, size: 16)
+        $0.numberOfLines = 0
+    }
+    
     private let tableView = UITableView().then {
         $0.backgroundColor = .white
         $0.separatorStyle = .singleLine
@@ -84,6 +92,7 @@ class RoutineViewController: UIViewController {
         
         setUI()
         setupTableView()
+        setupCollectionView()
         setLayout()
         addObserver()
         
@@ -96,13 +105,13 @@ class RoutineViewController: UIViewController {
         appearOnlyExistCategory() // 존재하는 카테고리 종류만 키워드에 노출될 수 있도록 리스트업
         checkFirstCategory() // 화면에 바로 표기할 첫번째 카테고리 index 설정
         
-        setupCollectionView()
-        
         // tableView의 팬 제스처를 contentScrollView로 전달
         // tableView 의 스크롤은 안되더라도 클릭 제스쳐는 작동하게함
         contentScrollView.panGestureRecognizer.require(toFail: tableView.panGestureRecognizer)
         
         if appearCategory.count != 0 { selectFirstCategory() }
+        
+        checkRoutineEmpty()
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -133,22 +142,7 @@ class RoutineViewController: UIViewController {
         print("view did appear")
     }
     
-    private func addObserver() {
-        NotificationCenter.default.addObserver(self, selector: #selector(moveToSettingPage(_:)), name: Notification.Name("moveToGoalSettingVC"), object: nil)
-    }
-    
-    private func setupCollectionView() {
-        categoryCollectionView.dataSource = self
-        categoryCollectionView.delegate = self
-        categoryCollectionView.register(CategoryCollectionViewCell.self, forCellWithReuseIdentifier: CategoryCollectionViewCell.identifier)
-    }
-    
-    private func setupTableView() {
-        tableView.delegate = self
-        tableView.dataSource = self
-        tableView.separatorStyle = .none // cell 라인 없애기
-        tableView.register(RoutineCellTableViewCell.self, forCellReuseIdentifier: RoutineCellTableViewCell.identifier)
-    }
+    // MARK: - 카테고리 관련 함수
     
     // 처음 0번째 카테고리 셀을 선택된 상태로 설정
     // 처음에 카테고리를 클릭하지 않아도 첫번재 카테고리가 자동으로 선택되어 있게 함
@@ -195,6 +189,8 @@ class RoutineViewController: UIViewController {
         }
     }
     
+    // MARK: - route tableView 관련 함수
+    
     // tableView의 콘텐츠 높이에 따라 contentView의 높이를 동적으로 조정
     func updateContentViewHeight() {
         self.view.layoutIfNeeded() // 레이아웃 강제 업데이트
@@ -214,6 +210,67 @@ class RoutineViewController: UIViewController {
         contentView.snp.updateConstraints {
             $0.height.equalTo(contentHeight)
         }
+    }
+    
+    // 모든 루틴을 추가해서 추가할 루틴이 없을 경우 헬퍼 텍스트 표기
+    func checkRoutineEmpty() {
+        print("routinesData: \(routinesData)")
+        let routines = routinesData.flatMap { $0 }
+        if routines.isEmpty {
+            contentScrollView.addSubview(emptyLabel)
+            self.emptyLabel.snp.makeConstraints {
+                $0.centerX.centerY.equalToSuperview()
+            }
+        }
+    }
+    
+    // MARK: - tap 함수
+    @objc func moveToSettingPage(_ notification: Notification) {
+        guard let userInfo = notification.userInfo else { return }
+        guard let routineName = userInfo["routineName"] as? String else { return }
+        guard let id = userInfo["id"] as? Int else { return }
+        guard let category = userInfo["category"] as? String else { return }
+        guard let description = userInfo["description"] as? String else { return }
+
+        let secondVC = GoalSettingViewController()
+        secondVC.modalPresentationStyle = .fullScreen
+        
+        secondVC.routineViewController = self
+        secondVC.id = id
+        secondVC.routineDescription = description
+        secondVC.category = category
+        secondVC.routineName = routineName
+        guard let navigationController = navigationController else {
+            print("네비게이션이 없음")
+            return
+        }
+        navigationController.pushViewController(secondVC, animated: true)
+    }
+    
+    @objc func tapMoveToMainBtn() {
+        DispatchQueue.main.async {
+            let secondVC = MainHomeViewController()
+            secondVC.modalPresentationStyle = .fullScreen
+            self.navigationController?.setViewControllers([secondVC], animated: true)
+        }
+    }
+    
+    // MARK: - ui 기본 설정 및 layout
+    private func addObserver() {
+        NotificationCenter.default.addObserver(self, selector: #selector(moveToSettingPage(_:)), name: Notification.Name("moveToGoalSettingVC"), object: nil)
+    }
+    
+    private func setupCollectionView() {
+        categoryCollectionView.dataSource = self
+        categoryCollectionView.delegate = self
+        categoryCollectionView.register(CategoryCollectionViewCell.self, forCellWithReuseIdentifier: CategoryCollectionViewCell.identifier)
+    }
+    
+    private func setupTableView() {
+        tableView.delegate = self
+        tableView.dataSource = self
+        tableView.separatorStyle = .none // cell 라인 없애기
+        tableView.register(RoutineCellTableViewCell.self, forCellReuseIdentifier: RoutineCellTableViewCell.identifier)
     }
     
     func setUI() {
@@ -268,36 +325,7 @@ class RoutineViewController: UIViewController {
             $0.height.equalTo(56)
         }
     }
-    
-    @objc func moveToSettingPage(_ notification: Notification) {
-        guard let userInfo = notification.userInfo else { return }
-        guard let routineName = userInfo["routineName"] as? String else { return }
-        guard let id = userInfo["id"] as? Int else { return }
-        guard let category = userInfo["category"] as? String else { return }
-        guard let description = userInfo["description"] as? String else { return }
 
-        let secondVC = GoalSettingViewController()
-        secondVC.modalPresentationStyle = .fullScreen
-        
-        secondVC.routineViewController = self
-        secondVC.id = id
-        secondVC.routineDescription = description
-        secondVC.category = category
-        secondVC.routineName = routineName
-        guard let navigationController = navigationController else {
-            print("네비게이션이 없음")
-            return
-        }
-        navigationController.pushViewController(secondVC, animated: true)
-    }
-    
-    @objc func tapMoveToMainBtn() {
-        DispatchQueue.main.async {
-            let secondVC = MainHomeViewController()
-            secondVC.modalPresentationStyle = .fullScreen
-            self.navigationController?.setViewControllers([secondVC], animated: true)
-        }
-    }
     
     // MARK: - Debugging func
     func setMetaData() {
@@ -317,7 +345,6 @@ class RoutineViewController: UIViewController {
     
     func setAIData() {
         routinesData = RoutineDataProvider.shared.loadRoutinesData()
-        print("routinesData 테스트 \(routinesData)")
     }
 }
 

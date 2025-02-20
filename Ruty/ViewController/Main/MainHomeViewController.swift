@@ -65,6 +65,14 @@ class MainHomeViewController: UIViewController {
         $0.isScrollEnabled = false
     }
     
+    private let emptyLabel = UILabel().then {
+        $0.text = ""
+        $0.textColor = UIColor.font.tertiary
+        $0.textAlignment = .center
+        $0.font = UIFont(name: Font.regular.rawValue, size: 16)
+        $0.numberOfLines = 0
+    }
+    
     private let recommendRoutineBtn = UIButton().then {
         $0.backgroundColor = UIColor.fill.secondary
         $0.layer.cornerRadius = 12
@@ -73,6 +81,14 @@ class MainHomeViewController: UIViewController {
         $0.setTitleColor(UIColor.font.primary, for: .normal)
         $0.addTarget(self, action: #selector(tapRecommendRoutineBtn), for: .touchUpInside)
     }
+    
+    let deleteBtn = UIButton().then {
+        $0.setTitle("회원탈퇴", for: .normal)
+        $0.backgroundColor = .black
+        $0.layer.cornerRadius = 10
+        $0.setTitleColor(.white, for: .normal)
+        $0.addTarget(self, action: #selector(tapDeleteBtn), for: .touchUpInside)
+    }
 
     // 카테고리 데이터
     private var categoryLevels = JSONModel.CategoryLevels(message: "", data: [])
@@ -80,7 +96,7 @@ class MainHomeViewController: UIViewController {
     private var categoryLevelAfterRoutineDone = JSONModel.CategoryLevelAfterRoutineDone(message: "", data: JSONModel.CategoryLevel(category: "", level: 1, totalPoints: 1))
     
     // 루틴 데이터
-    private var todayRoutineData = JSONModel.Routines(message: "", data: []) // 모든 오늘의 루틴 데이터
+    private var todayRoutineData = JSONModel.RoutinesResponse(message: "", data: []) // 모든 오늘의 루틴 데이터
     private var sortedTodayRoutineData = [[JSONModel.Routine]](repeating: [JSONModel.Routine](), count: 4) // 카테고리별 정렬 & 완료된 루틴은 삭제된 루틴 데이터
     private var showTodayRoutineData = [JSONModel.Routine]() // 사용자에게 보여질 루트 데이터
     
@@ -93,6 +109,7 @@ class MainHomeViewController: UIViewController {
         setupCollectionView()
         setupTableView()
         setLayout()
+        //checkRoutineEmptyReason()
     }
     
     override func viewDidLayoutSubviews() {
@@ -102,6 +119,29 @@ class MainHomeViewController: UIViewController {
     }
     
     // MARK: - api 요청
+    
+    @objc func tapDeleteBtn() {
+        let url = NetworkManager.shared.getRequestURL(api: "/api/profile")
+        //let param : Parameters = ["code" : authorizationCodeString]
+        let param = JSONModel.Delete(code: UserDefaults.standard.string(forKey: "authCode")!)
+        print("param \(param)")
+        guard let jsonData = try? JSONEncoder().encode(param),
+              var param = try? JSONSerialization.jsonObject(with: jsonData) as? [String: Any] else { return }
+        NetworkManager.shared.requestAPI(url: url, method: .delete, encoding: JSONEncoding.default, param: param) { result in
+            switch result {
+            case .success(let data):
+                if let jsonString = String(data: data, encoding: .utf8) {
+                    print("모든 루틴 JSON 문자열: \(jsonString)")
+                } else {
+                    print("Data를 문자열로 변환할 수 없습니다.")
+                }
+            case .failure(let error):
+                // 요청이 실패한 경우
+                print("API 요청 실패: \(error.localizedDescription)")
+            }
+        }
+    }
+    
     // 오늘의 루틴 요청
     func loadTodayData() {
         let url = NetworkManager.shared.getRequestURL(api: "/api/routine/today")
@@ -109,12 +149,13 @@ class MainHomeViewController: UIViewController {
             switch result {
             case .success(let data):
                 do {
-                    let decodedResponse = try JSONDecoder().decode(JSONModel.Routines.self, from: data)
+                    let decodedResponse = try JSONDecoder().decode(JSONModel.RoutinesResponse.self, from: data)
                     self.todayRoutineData = decodedResponse
                     self.sortTodayRoutineData()
                     self.makeShowTodayRoutine()
                     
                     self.tableView.reloadData()
+                    self.checkRoutineEmptyReason()
                 } catch {
                     print("오늘의 루틴 데이터 JSON 디코딩 오류: \(error)")
                 }
@@ -198,6 +239,7 @@ class MainHomeViewController: UIViewController {
         }
     }
     
+    // MARK: - 카테고리 레벨 관련 함수
     // 카테고리 레벨 요구사항대로 정렬
     func sortCategoryLevel() {
         for category in categoryLevels.data {
@@ -237,6 +279,28 @@ class MainHomeViewController: UIViewController {
         
         for routines in sortedTodayRoutineData {
             showTodayRoutineData += routines
+        }
+    }
+    
+    // 보여줄 오늘의 루틴 리스트가 비었을 경우
+    // 오늘 실천할 루틴이 아예 없는건지 오늘 루틴을 모두 완료한건지 판단
+    func checkRoutineEmptyReason() {
+        if showTodayRoutineData.isEmpty {
+            // 오늘 실천할 루틴이 아예 없는경우
+            if todayRoutineData.data.isEmpty {
+                emptyLabel.text = """
+                현재 실천 중인 루틴이 없어요.
+                새로운 루틴을 만들어볼까요?
+                """
+            }
+            // 오늘 루틴을 모두 완료
+            else { emptyLabel.text = "대단해요! 오늘의 계획을 모두 이뤄냈어요" }
+            
+            contentView.addSubview(emptyLabel)
+            self.emptyLabel.snp.makeConstraints {
+                $0.top.equalTo(tableViewTopLabel.snp.bottom).offset(146)
+                $0.centerX.equalToSuperview()
+            }
         }
     }
     
@@ -290,8 +354,15 @@ class MainHomeViewController: UIViewController {
     private func setLayout() {
         [topBackgroundView, bottomBackgroundView, contentScrollView].forEach({ view.addSubview($0) })
         [contentView].forEach({ contentScrollView.addSubview($0) })
-        [categoryBoxView, tableViewTopView, tableViewTopLabel, tableView, recommendRoutineBtn].forEach({ contentView.addSubview($0) })
+        [deleteBtn, categoryBoxView, tableViewTopView, tableViewTopLabel, tableView, recommendRoutineBtn].forEach({ contentView.addSubview($0) })
         [categoryCollectionView].forEach({ categoryBoxView.addSubview($0) })
+        
+        // 계정 탈퇴 테스트할때 넣고 하기
+//        self.deleteBtn.snp.makeConstraints({
+//            $0.top.equalToSuperview()
+//            $0.centerY.centerX.equalToSuperview()
+//            $0.height.width.equalTo(56)
+//        })
         
         self.topBackgroundView.snp.makeConstraints {
             $0.right.left.equalTo(self.view.safeAreaLayoutGuide)
