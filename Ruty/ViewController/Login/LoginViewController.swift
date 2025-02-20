@@ -24,9 +24,10 @@ class LoginViewController: UIViewController {
     
     private let appleLoginBtn = ASAuthorizationAppleIDButton(authorizationButtonType: .continue, authorizationButtonStyle: .black).then {
         $0.cornerRadius = 10
-        
         $0.addTarget(self, action: #selector(tapAppleLoginBtn), for: .touchUpInside)
     }
+    
+
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -56,7 +57,7 @@ class LoginViewController: UIViewController {
     
     func setLayout() {
         [googleLoginBtn, appleLoginBtn].forEach({ view.addSubview($0) })
-        
+             
         self.googleLoginBtn.snp.makeConstraints({
             $0.top.equalToSuperview().offset(500)
             $0.leading.trailing.equalToSuperview().inset(20)
@@ -69,6 +70,7 @@ class LoginViewController: UIViewController {
         })
     }
     
+   
     @objc func tapGoogleLoginBtn(_ sender: UIButton) {
         // SDK 로그인 방식
         GIDSignIn.sharedInstance.signIn(withPresenting: self) { signInResult, error in
@@ -79,10 +81,10 @@ class LoginViewController: UIViewController {
             
             let url = NetworkManager.shared.getRequestURL(api: "/login/oauth2/code/google")
             
-            let param = NetworkManager.GoogleLogin(platformType: "ios", code: idToken!)
+            let param = JSONModel.GoogleLogin(platformType: "ios", code: idToken!)
             guard let jsonData = try? JSONEncoder().encode(param),
                   var param = try? JSONSerialization.jsonObject(with: jsonData) as? [String: Any] else { return }
-            
+                    
             NetworkManager.shared.requestAPI(url: url, method: .post, encoding: JSONEncoding.default , param: param) { result in
                 
                 switch result {
@@ -90,12 +92,15 @@ class LoginViewController: UIViewController {
                     do {
                         let decodedResponse = try JSONDecoder().decode(JSONModel.GoogleLoginResponse.self, from: data)
                         if decodedResponse.message == "ok" {
+                            print(decodedResponse)
                             // 로그인 성공
                             // 회원가입 or 메인뷰로 이동
                             self.loadMemberAgree()
                         }
                         else {
                             print("서버 연결 오류")
+                            //throw HttpError.badRequest
+                            ErrorViewController.showErrorPage(viewController: self)
                         }
                     } catch {
                         print("JSON 디코딩 오류: \(error)")
@@ -103,6 +108,7 @@ class LoginViewController: UIViewController {
                 case .failure(let error):
                     // 요청이 실패한 경우
                     print("API 요청 실패: \(error.localizedDescription)")
+                    ErrorViewController.showErrorPage(viewController: self)
                 }
             }
         }
@@ -120,6 +126,34 @@ class LoginViewController: UIViewController {
         controller.delegate = self
         controller.presentationContextProvider = self
         controller.performRequests()
+    }
+    
+    func loadMemberAgree() {
+        let url = NetworkManager.shared.getRequestURL(api: "/api/member/isAgree")
+        NetworkManager.shared.requestAPI(url: url, method: .get, encoding: URLEncoding.default, param: nil) { result in
+            switch result {
+            case .success(let data):
+                do {
+                    let decodedResponse = try JSONDecoder().decode(JSONModel.SignResponse.self, from: data)
+                    // 회원가입이 필요함
+                    if decodedResponse.data == nil {
+                        self.moveToSignUp() // 회원가입 창으로 이동
+                    }
+                    
+                    // 회원가입 완료됨
+                    else {
+                        self.moveToSignUp() // 디버깅용
+                        //self.moveToMainView() // 메인화면으로 이동
+                    }
+                } catch {
+                    print("JSON 디코딩 오류: \(error)")
+                }
+            case .failure(let error):
+                // 요청이 실패한 경우
+                print("API 요청 실패: \(error.localizedDescription)")
+                ErrorViewController.showErrorPage(viewController: self)
+            }
+        }
     }
       
     func moveToSignUp() {
@@ -141,34 +175,6 @@ class LoginViewController: UIViewController {
             self.view.window?.makeKeyAndVisible()
         }
     }
-    
-    func loadMemberAgree() {
-        let url = NetworkManager.shared.getRequestURL(api: "/api/member/isAgree")
-        NetworkManager.shared.requestAPI(url: url, method: .get, encoding: URLEncoding.default, param: nil) { result in
-            switch result {
-            case .success(let data):
-                do {
-                    let decodedResponse = try JSONDecoder().decode(JSONModel.Sign.self, from: data)
-                    
-                    // 회원가입이 필요함
-                    if decodedResponse.data == nil {
-                        self.moveToSignUp() // 회원가입 창으로 이동
-                    }
-                    
-                    // 회원가입 완료됨
-                    else {
-                        self.moveToMainView() // 메인화면으로 이동
-                    }
-                    
-                } catch {
-                    print("JSON 디코딩 오류: \(error)")
-                }
-            case .failure(let error):
-                // 요청이 실패한 경우
-                print("API 요청 실패: \(error.localizedDescription)")
-            }
-        }
-    }
 }
 
 extension LoginViewController: ASAuthorizationControllerPresentationContextProviding {
@@ -182,34 +188,46 @@ extension LoginViewController: ASAuthorizationControllerDelegate {
     // 로그인 실패 시
     func authorizationController(controller: ASAuthorizationController, didCompleteWithError error: any Error) {
         print("로그인 실패", error.localizedDescription)
+        ErrorViewController.showErrorPage(viewController: self)
     }
     
     // Apple ID 로그인에 성공한 경우, 사용자의 인증 정보를 확인하고 필요한 작업을 수행합니다
     func authorizationController(controller: ASAuthorizationController, didCompleteWithAuthorization authorization: ASAuthorization) {
         switch authorization.credential {
         case let appleIdCredential as ASAuthorizationAppleIDCredential:
-            // 매번 인증시 얻을 수 있는 정보
-            let userIdentifier = appleIdCredential.user
-            
-            // 첫 로그인시에만 얻을 수 있는 정보
-            let fullName = appleIdCredential.fullName
-            let email = appleIdCredential.email
-            
-            // 토큰 생성 및 삭제에 필요한 데이터
-            // 서버와 연결 필요
-            let identityToken = appleIdCredential.identityToken // 5분 후 사용불가
-            let authorizationCode = appleIdCredential.authorizationCode // 10분 후 사용불가, 한번만 사용가능
-            
             if let authorizationCodeData = appleIdCredential.authorizationCode,
                let authorizationCodeString = String(data: authorizationCodeData, encoding: .utf8) {
- 
                 let url = NetworkManager.shared.getRequestURL(api: "/login/oauth2/code/apple")
-                let param : Parameters = ["code" : authorizationCodeString]
+                let param = JSONModel.AppleLogin(platformType: "ios", code: authorizationCodeString)
+                guard let jsonData = try? JSONEncoder().encode(param),
+                      var param = try? JSONSerialization.jsonObject(with: jsonData) as? [String: Any] else { return }
                 
-                NetworkManager.shared.requestAPI(url: url, method: .get, encoding: URLEncoding.queryString, param: param) { data in
-                    print("받은 데이터 : \(data)")
-                    
-                    self.loadMemberAgree()
+                UserDefaults.standard.set(authorizationCodeString, forKey: "authCode")
+                
+                print("애플 로그인 시도")
+                NetworkManager.shared.requestAPI(url: url, method: .post, encoding: JSONEncoding.default, param: param) { result in
+                    switch result {
+                    case .success(let data):
+                        do {
+                            let decodedResponse = try JSONDecoder().decode(JSONModel.AppleLoginResponse.self, from: data)
+                            if decodedResponse.message == "ok" {
+                                print(decodedResponse)
+                                print("애플 로그인 성공")
+                                // 로그인 성공. 회원가입 or 메인뷰로 이동
+                                self.loadMemberAgree()
+                            }
+                            else {
+                                print("서버 연결 오류")
+                                ErrorViewController.showErrorPage(viewController: self)
+                            }
+                        } catch {
+                            print("JSON 디코딩 오류: \(error)")
+                        }
+                    case .failure(let error):
+                        // 요청이 실패한 경우
+                        print("API 요청 실패: \(error.localizedDescription)")
+                        ErrorViewController.showErrorPage(viewController: self)
+                    }
                 }
             } else {
                 print("authorizationCode 변환에 실패했습니다.")

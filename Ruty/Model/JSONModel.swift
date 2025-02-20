@@ -9,22 +9,52 @@ import Foundation
 
 class JSONModel {
     
+    struct GoogleLogin: Encodable {
+        let platformType: String
+        let code: String
+    }
+    
     struct GoogleLoginResponse: Codable {
         let message: String
-        let data: TokenData
+        let data: GoogleTokenData
     }
 
-    struct TokenData: Codable {
+    struct GoogleTokenData: Codable {
         let accessToken: String
         let refreshToken: String
     }
     
-    struct Sign: Codable {
+    struct AppleLogin: Encodable {
+        let platformType: String
+        let code: String
+    }
+    
+    struct AppleLoginResponse: Codable {
+        let message: String
+        let data: AppleTokenData
+    }
+    
+    struct AppleTokenData: Codable {
+        let accessToken: String
+        let refreshToken: String
+    }
+    
+    struct SingIn: Encodable {
+        let nickName: String
+        let isAgree: Bool
+    }
+    
+    struct SignResponse: Codable {
         let message: String
         let data: Bool?
     }
     
-    struct Routines: Codable {
+    struct SignUpResponse: Codable {
+        let message: String
+        let data: Int
+    }
+    
+    struct RoutinesResponse: Codable {
         let message: String
         let data: [Routine]
     }
@@ -36,7 +66,7 @@ class JSONModel {
         let done: Bool
     }
     
-    struct RecommendedRoutines: Codable {
+    struct RecommendedRoutinesResponse: Codable {
         let message: String
         let data: [RecommendedRoutine]
     }
@@ -62,5 +92,9 @@ class JSONModel {
     struct CategoryLevelAfterRoutineDone: Codable {
         let message: String
         let data: CategoryLevel
+    }
+    
+    struct Delete: Encodable {
+        let code: String
     }
 }

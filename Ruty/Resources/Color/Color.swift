@@ -25,10 +25,12 @@ extension UIColor {
     struct font {
         static let primary = UIColor(3, 7, 18, 1)
         static let secondary = UIColor(107, 114, 128, 1)
+        static let tertiary = UIColor(156, 163, 175, 1)
     }
     
     struct fill {
         static let brand = UIColor(99, 102, 241, 1)
         static let secondary = UIColor(243, 244, 246, 1)
+        static let primary = UIColor(31, 41, 55, 1)
     }
 }

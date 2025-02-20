@@ -10,22 +10,7 @@ import Alamofire
 
 class NetworkManager {
     
-    struct SingIn: Encodable {
-        let nickName: String
-        let isAgree: Bool
-    }
-    
-    struct AppleLogin: Encodable {
-        let code: String
-    }
-    
-    struct GoogleLogin: Encodable {
-        let platformType: String
-        let code: String
-    }
-    
     static let shared = NetworkManager()
-    
     private init() { }
     
     func getRequestURL(api: String) -> String {
