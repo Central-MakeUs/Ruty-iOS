@@ -9,6 +9,7 @@ import UIKit
 import SnapKit
 import Then
 import SafariServices
+import Alamofire
 
 class SignUpAgreeViewController: UIViewController {
     
@@ -115,7 +116,7 @@ class SignUpAgreeViewController: UIViewController {
         $0.titleLabel?.font = UIFont(name: Font.semiBold.rawValue, size: 16)
         $0.setTitleColor(.white, for: .normal)
     }
-    
+        
     var isAllAgree = false {
         didSet {
             if isAllAgree == true {
@@ -174,6 +175,9 @@ class SignUpAgreeViewController: UIViewController {
         // 기본 네비게이션바 비활성화
         navigationController?.setNavigationBarHidden(true, animated: false)
     }
+    
+
+    
     
     func addTargetToLabel() {
         setLinkToLabel(label: agreeRequiredDescription, textToLink: "이용약관")
@@ -328,7 +332,7 @@ class SignUpAgreeViewController: UIViewController {
                range.contains(index) {
                 print("이용약관 클릭됨!")
                 // 원하는 함수 호출
-                let pageURL = NSURL(string: "https://www.naver.com/")
+                let pageURL = NSURL(string: "https://humorous-bayberry-36a.notion.site/1735f772702f80668c0bc1a20f5e43be?pvs=4")
                 let infoView: SFSafariViewController = SFSafariViewController(url: pageURL as! URL)
                 self.present(infoView, animated: true, completion: nil)
             }
@@ -337,7 +341,7 @@ class SignUpAgreeViewController: UIViewController {
                range.contains(index) {
                 print("개인정보 클릭됨!")
                 // 원하는 함수 호출
-                let pageURL = NSURL(string: "https://www.naver.com/")
+                let pageURL = NSURL(string: "https://humorous-bayberry-36a.notion.site/1735f772702f80448efad1b40945eda3?pvs=4")
                 let infoView: SFSafariViewController = SFSafariViewController(url: pageURL as! URL)
                 self.present(infoView, animated: true, completion: nil)
             }
@@ -349,8 +353,7 @@ class SignUpAgreeViewController: UIViewController {
                range.contains(index) {
                 print("마케팅 클릭됨!")
                 // 원하는 함수 호출
-                // 원하는 함수 호출
-                let pageURL = NSURL(string: "https://www.naver.com/")
+                let pageURL = NSURL(string: "https://humorous-bayberry-36a.notion.site/1735f772702f80448efad1b40945eda3?pvs=4")
                 let infoView: SFSafariViewController = SFSafariViewController(url: pageURL as! URL)
                 self.present(infoView, animated: true, completion: nil)
             }

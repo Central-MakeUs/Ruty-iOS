@@ -18,7 +18,7 @@ class RoutineDataProvider {
         let prompt: String
     }
     
-    private var rawRoutinesData = JSONModel.RecommendedRoutines(message: "", data: [])
+    private var rawRoutinesData = JSONModel.RecommendedRoutinesResponse(message: "", data: [])
     private var routinesData = [[JSONModel.RecommendedRoutine]](repeating: [JSONModel.RecommendedRoutine](), count: 4)
     
     private var param: GPT?
@@ -29,28 +29,58 @@ class RoutineDataProvider {
     
     func loadRoutinesData() -> [[JSONModel.RecommendedRoutine]] { return routinesData }
     
-    func startloadAIData(completion: @escaping () -> ()) {
+    func startloadAIData(completion: @escaping (Bool) -> ()) {
         let url = "https://" + (Bundle.main.infoDictionary?["BASE_API"] as! String) + (Bundle.main.infoDictionary?["CHAT"] as! String)
         // Encodable을 JSON으로 변환
         guard let jsonData = try? JSONEncoder().encode(param),
               let param = try? JSONSerialization.jsonObject(with: jsonData) as? [String: Any] else { return }
         print("gpt Request Params: \(param)")
         
-        requestGetAPI(url: url, param: param) {
-            self.devideRoutines()
-            completion()
+        let accessToken = Bundle.main.infoDictionary?["ACCESS_TOKEN"] as! String
+        let header: HTTPHeaders = [
+            "Authorization": "Bearer \(accessToken)",
+            "Content-Type":"application/json", "Accept":"application/json"
+        ]
+        
+        AF.request(url,
+                   method: .get,
+                   parameters: param,
+                   encoding: URLEncoding.default,
+                   headers: header)
+        .validate(statusCode: 200..<300)
+        .responseData { response in
+            switch response.result {
+            case .success(let data):
+                do {
+                    let decodedResponse = try JSONDecoder().decode(JSONModel.RecommendedRoutinesResponse.self, from: data)
+                    print("gpt decodedResponse:\(decodedResponse)")
+                    if decodedResponse.message == "created" {
+                        let routines = decodedResponse
+                        self.rawRoutinesData = routines
+                        self.devideRoutines()
+                        completion(true)
+                    }
+                    else {
+                        completion(false)
+                    }
+                } catch {
+                    print("JSON 디코딩 오류: \(error)")
+                    completion(false)
+                }
+            case .failure(let error):
+                print("네트워크 api 요청 실패: \(error)")
+                completion(false)
+            }
         }
     }
     
     func loadRecommendedData(completion: @escaping () -> ()) {
-        print()
-        
         let url = NetworkManager.shared.getRequestURL(api: "/api/recommend/my")
         NetworkManager.shared.requestAPI(url: url, method: .get, encoding: URLEncoding.default, param: nil) { result in
             switch result {
             case .success(let data):
                 do {
-                    let decodedResponse = try JSONDecoder().decode(JSONModel.RecommendedRoutines.self, from: data)
+                    let decodedResponse = try JSONDecoder().decode(JSONModel.RecommendedRoutinesResponse.self, from: data)
                     self.rawRoutinesData = decodedResponse
                     self.devideRoutines()
                     
@@ -83,36 +113,4 @@ class RoutineDataProvider {
             }
         }
     }
-    
-    private func requestGetAPI(url: String, param: Parameters, completion :@escaping ()->()) {
-        
-        let accessToken = Bundle.main.infoDictionary?["ACCESS_TOKEN"] as! String
-        let header: HTTPHeaders = [
-            "Authorization": "Bearer \(accessToken)",
-            "Content-Type":"application/json", "Accept":"application/json"
-        ]
-        
-        AF.request(url,
-                   method: .get,
-                   parameters: param,
-                   encoding: URLEncoding.default,
-                   headers: header)
-        .validate(statusCode: 200..<300)
-        .responseData { response in
-            switch response.result {
-            case .success(let data):
-                do {
-                    let decodedResponse = try JSONDecoder().decode(JSONModel.RecommendedRoutines.self, from: data)
-                    let routines = decodedResponse  // 실제 루틴 데이터
-                    self.rawRoutinesData = routines
-                    completion()
-                } catch {
-                    print("JSON 디코딩 오류: \(error)")
-                }
-            case .failure(let error):
-                print("네트워크 api 요청 실패: \(error)")
-            }
-        }
-    }
 }
-

@@ -48,23 +48,15 @@ class LoadingViewController: UIViewController {
         self.view.backgroundColor = .white
         
         nicknameLabel.text! += "님의"
-        
         setLayout()
         
         // 로딩 뷰 설정
         setupRotatingView()
         
         // ai 데이터 생성 대기 시작
-        RoutineDataProvider.shared.startloadAIData {         
-            DispatchQueue.main.async {
-                // 생성 완료되면 다음 페이지로 이동
-                let secondVC = RoutineViewController()
-                secondVC.modalPresentationStyle = .fullScreen
-                self.navigationController?.setViewControllers([secondVC], animated: true)
-            }
-        }
+        tryLoadAIData(tryCount: 1)
     }
-    
+
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
@@ -83,6 +75,28 @@ class LoadingViewController: UIViewController {
         super.viewDidAppear(animated)
         // 뷰가 나타난 후 애니메이션 시작
         startRotatingAnimation()
+    }
+    
+    // 최대 3회까지 ai 데이터 요청
+    func tryLoadAIData(tryCount: Int) {
+        RoutineDataProvider.shared.startloadAIData { isLoad in
+            if isLoad {
+                DispatchQueue.main.async {
+                    // 생성 완료되면 다음 페이지로 이동
+                    let secondVC = RoutineViewController()
+                    secondVC.modalPresentationStyle = .fullScreen
+                    self.navigationController?.setViewControllers([secondVC], animated: true)
+                }
+            }
+            // 로드 실패시 3회까지 재시도
+            else if tryCount <= 3 {
+                self.tryLoadAIData(tryCount: tryCount + 1)
+            }
+            // 4회 부터는 에러로 처리하고 로드 시도 중단
+            else {
+                print("tryCount:\(tryCount) 로드 실패")
+            }
+        }
     }
     
     // 로딩 view 구현
