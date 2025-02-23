@@ -177,7 +177,6 @@ class OnBoardingMainViewController: UIViewController {
         })
         
         self.tableView.snp.makeConstraints {
-            print(tableView.contentSize.height)
             $0.top.equalTo(descriptionLabel2.snp.bottom).offset(28)
             $0.bottom.left.right.equalToSuperview()
         }
@@ -207,7 +206,6 @@ class OnBoardingMainViewController: UIViewController {
             RoutineDataProvider.shared.setGPTParam(prompt: getGPTPrompt())
             
             let secondVC = LoadingViewController()
-            //let secondVC = RoutineViewController() // 디버깅용
             secondVC.modalPresentationStyle = .fullScreen
             navigationController?.pushViewController(secondVC, animated: true)
         }
@@ -275,7 +273,6 @@ extension OnBoardingMainViewController : UITableViewDelegate, UITableViewDataSou
     
     // MARK: - UITableViewDelegate
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        print("Selected row: \(indexPath.row)")
         
         // 클릭한 cell 에 접근
         if let selectedCell = tableView.cellForRow(at: indexPath) as? ImproveSelectTableViewCell {

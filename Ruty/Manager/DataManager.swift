@@ -12,4 +12,5 @@ class DataManager {
     private init() { }
     
     var userNickName : String?
+    var socialType: String?
 }

@@ -6,10 +6,12 @@
 //
 
 import UIKit
+import Alamofire
 
 class SignUpWriteNameViewController: UIViewController {
 
     private let maxLength = 20
+    var isAgree = false
     
     let navigationView = UIView().then {
         $0.backgroundColor = .clear
@@ -143,6 +145,45 @@ class SignUpWriteNameViewController: UIViewController {
         navigationController?.interactivePopGestureRecognizer?.isEnabled = true
     }
 
+    func requestSignUp() {
+        let url = NetworkManager.shared.getRequestURL(api: "/api/member/sign")
+        let param = JSONModel.SingIn(nickName: textField.text!, isAgree: isAgree)
+        
+        // Encodable을 JSON으로 변환
+        guard let jsonData = try? JSONEncoder().encode(param),
+              var param = try? JSONSerialization.jsonObject(with: jsonData) as? [String: Any] else { return }
+        
+        // NSNumber에서 Bool로 변환
+        if let number = param["isAgree"] as? NSNumber {
+            param["isAgree"] = number.boolValue
+        }
+        
+        NetworkManager.shared.requestAPI(url: url, method: .put, encoding: JSONEncoding.default , param: param) { result in
+            
+            switch result {
+            case .success(let data):
+                do {
+                    let decodedResponse = try JSONDecoder().decode(JSONModel.APIResponse.self, from: data)
+                    if decodedResponse.message == "update" {
+                        DataManager.shared.userNickName = self.textField.text
+                        self.moveToNextPage()
+                    }
+                    else {
+                        print("서버 연결 오류")
+                        ErrorViewController.showErrorPage(viewController: self)
+                    }
+                } catch {
+                    print("JSON 디코딩 오류: \(error)")
+                    ErrorViewController.showErrorPage(viewController: self)
+                }
+                
+            case .failure(let error):
+                // 요청이 실패한 경우
+                print("API 요청 실패: \(error.localizedDescription)")
+                ErrorViewController.showErrorPage(viewController: self)
+            }
+        }
+    }
     
     func addTarget() {
         var tapGesture = UITapGestureRecognizer(target: self, action: #selector(goBack))
@@ -203,22 +244,18 @@ class SignUpWriteNameViewController: UIViewController {
         else if characterCount >= 21 {
             // 20자 초과한 글자는 바로 삭제
             textField.deleteBackward()
-            print(textField.text)
         }
         else {
             isNickNameCheckd = 2
         }
     }
     
-    
     @objc func tapNextPageBtn() {
         if let text = textField.text, text.first == " " {
             print("첫 입력으로 공백은 불가, 다음페이지로 이동 불가")
         }
         else if isNickNameCheckd == 2 || isNickNameCheckd == 3 {
-            print("다음페이지로 이동")
-            DataManager.shared.userNickName = textField.text
-            moveToNextPage()
+            requestSignUp()
         }
         else {
             print("다음페이지로 이동 불가")

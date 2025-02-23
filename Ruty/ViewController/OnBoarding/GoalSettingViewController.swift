@@ -12,12 +12,14 @@ class GoalSettingViewController: UIViewController {
     var routineViewController: RoutineViewController?
     
     var id: Int?
+    var category: String?
+    var routineDescription: String?
     var routineName: String?
     
     let maxTextCount = 50
     
     let days = ["월", "화", "수", "목", "금", "토", "일"]
-    var selectedDays: [String] = []
+    var selectedDays: [String] = [] // 선택된 요일 리스트
     
     let backBtn = UIButton().then {
         $0.setImage(UIImage(named: "back"), for: .normal)
@@ -104,9 +106,30 @@ class GoalSettingViewController: UIViewController {
     }
     
     let slider = UISlider().then {
-        $0.value = 1
+        $0.value = 2
         $0.minimumValue = 1
-        $0.maximumValue = 6
+        $0.maximumValue = 7
+        $0.isContinuous = true
+        $0.minimumTrackTintColor = UIColor.fill.brand
+        $0.maximumTrackTintColor = UIColor.background.secondary
+        $0.thumbTintColor = UIColor.white // 핸들 색상
+        $0.addTarget(self, action: #selector(sliderChanged(_:)), for: .valueChanged)
+    }
+    
+    let sliderStartLabel = UILabel().then {
+        $0.text = "최소 1개월"
+        $0.textColor = UIColor.font.secondary
+        $0.textAlignment = .left
+        $0.font = UIFont(name: Font.semiBold.rawValue, size: 14)
+        $0.numberOfLines = 0
+    }
+    
+    let sliderEndLabel = UILabel().then {
+        $0.text = "최소 6개월"
+        $0.textColor = UIColor.font.secondary
+        $0.textAlignment = .left
+        $0.font = UIFont(name: Font.semiBold.rawValue, size: 14)
+        $0.numberOfLines = 0
     }
     
     let completeBtn = UIButton().then {
@@ -125,6 +148,10 @@ class GoalSettingViewController: UIViewController {
         setDaySetView()
         addObserver()
         setTextField()
+        
+        DispatchQueue.main.async {
+            self.slider.value = 2  // 슬라이더 초기 위치를 2로 설정
+        }
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -139,6 +166,22 @@ class GoalSettingViewController: UIViewController {
     func addObserver() {
         // 실시간 입력 이벤트 감지
         textField.addTarget(self, action: #selector(textFieldDidChange(_:)), for: .editingChanged)
+    }
+    
+    // MARK: - 슬라이더 관련 함수
+    @objc private func sliderChanged(_ sender: UISlider) {
+        // 1개월 단위로 값 보정
+        let roundedValue = round(sender.value)
+        sender.value = roundedValue
+        
+        if sender.value <= 2.0 {
+            sender.value = 2
+        }
+        else {
+            // 1개월 단위 이동 시 진동
+            let generator = UISelectionFeedbackGenerator()
+            generator.selectionChanged()
+        }
     }
     
     
@@ -218,7 +261,6 @@ class GoalSettingViewController: UIViewController {
             sender.backgroundColor = UIColor(224, 231, 255, 1)
             sender.layer.borderColor = UIColor(129, 140, 248, 1).cgColor
             addDay(dayString: dayString)
-            print(selectedDays)
         }
         else {
             sender.backgroundColor = .white
@@ -232,14 +274,61 @@ class GoalSettingViewController: UIViewController {
             showToast(view: view, message: "실천할 요일을 설정해 주세요", imageName: "warning-mark", withDuration: 0.5, delay: 1.5)
         }
         else {
-            // completion 지정
-            CATransaction.begin()
-            CATransaction.setCompletionBlock {
-                // 이전 화면으로 돌아간 후에 toast message 보여줌
-                self.showToastAfterPop()
+            let url = NetworkManager.shared.getRequestURL(api: "/api/recommend/\(id!)" )
+
+            selectedDays = selectedDays.map{
+                switch $0 {
+                case "월" : return "MON"
+                case "화" : return "TUE"
+                case "수" : return "WED"
+                case "목" : return "THU"
+                case "금" : return "FRI"
+                case "토" : return "SAT"
+                case "일" : return "SUN"
+                default: return "MON"
+                }
             }
-            navigationController?.popViewController(animated: true)
-            CATransaction.commit()
+
+            let jsonBody: [String: Any] = [
+                "title": textField.text ?? "" ,
+                "description": routineDescription ?? "",
+                "weekList": selectedDays,
+                "category": category ?? "HOUSE",
+                "month": Int(slider.value - 1)
+            ]
+            
+            NetworkManager.shared.sendRequest(url: url, method: "POST", jsonBody: jsonBody) { result in
+                switch result {
+                case .success(let data):
+                    do {
+                        let decodedResponse = try JSONDecoder().decode(JSONModel.GoalSettingResponse.self, from: data)
+                        if decodedResponse.message == "created" {
+                            NotificationCenter.default.post(name: Notification.Name("AddRoutine"), object: nil, userInfo: ["id" : self.id!])
+                                
+                            
+                            // completion 지정
+                            CATransaction.begin()
+                            CATransaction.setCompletionBlock {
+                                // 이전 화면으로 돌아간 후에 toast message 보여줌
+                                self.showToastAfterPop()
+                            }
+                            self.navigationController?.popViewController(animated: true)
+                            CATransaction.commit()
+                        }
+                        else {
+                            print("서버 연결 오류")
+                            ErrorViewController.showErrorPage(viewController: self)
+                        }
+                    } catch {
+                        print("JSON 디코딩 오류: \(error)")
+                        ErrorViewController.showErrorPage(viewController: self)
+                    }
+                case .failure(let error):
+                    // 요청이 실패한 경우
+                    print("API 요청 실패: \(error.localizedDescription)")
+                    ErrorViewController.showErrorPage(viewController: self)
+                }
+            }
         }
     }
     
@@ -253,16 +342,6 @@ class GoalSettingViewController: UIViewController {
     
     func addDay(dayString: String) {
         selectedDays.append(dayString)
-//        switch dayString {
-//        case "월" : selectedDays.append("월")
-//        case "화" : selectedDays.append("화")
-//        case "수" : selectedDays.append("수")
-//        case "목" : selectedDays.append("목")
-//        case "금" : selectedDays.append("FRI")
-//        case "토" : selectedDays.append("SAT")
-//        case "일" : selectedDays.append("SUN")
-//        default: break
-//        }
     }
     
     func removeDay(dayString: String) {
@@ -279,7 +358,7 @@ class GoalSettingViewController: UIViewController {
     }
     
     func setLayout() {
-        [backBtn, textField, helperLabel, maxCountLabel, currentCountLabel, daySetTitleLabel, daySetDescriptionLabel, dayStackView, termSetTitleLabel, termSetDescriptionLabel, completeBtn].forEach({ view.addSubview($0) })
+        [backBtn, textField, helperLabel, maxCountLabel, currentCountLabel, daySetTitleLabel, daySetDescriptionLabel, dayStackView, termSetTitleLabel, termSetDescriptionLabel, slider, sliderStartLabel, sliderEndLabel, completeBtn].forEach({ view.addSubview($0) })
         
         self.backBtn.snp.makeConstraints {
             $0.top.left.equalTo(view.safeAreaLayoutGuide).inset(20)
@@ -331,6 +410,21 @@ class GoalSettingViewController: UIViewController {
         self.termSetDescriptionLabel.snp.makeConstraints {
             $0.top.equalTo(termSetTitleLabel.snp.bottom).offset(8)
             $0.right.left.equalTo(view.safeAreaLayoutGuide).inset(20)
+        }
+        
+        self.slider.snp.makeConstraints {
+            $0.top.equalTo(termSetDescriptionLabel.snp.bottom).offset(32)
+            $0.right.left.equalTo(view.safeAreaLayoutGuide).inset(20)
+        }
+        
+        self.sliderStartLabel.snp.makeConstraints {
+            $0.top.equalTo(slider.snp.bottom).offset(20)
+            $0.left.equalTo(view.safeAreaLayoutGuide).inset(20)
+        }
+        
+        self.sliderEndLabel.snp.makeConstraints {
+            $0.top.equalTo(slider.snp.bottom).offset(20)
+            $0.right.equalTo(view.safeAreaLayoutGuide).inset(20)
         }
         
         self.completeBtn.snp.makeConstraints {

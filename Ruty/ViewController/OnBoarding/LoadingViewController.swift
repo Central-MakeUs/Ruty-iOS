@@ -9,6 +9,8 @@ import UIKit
 
 class LoadingViewController: UIViewController {
     
+    private var tryAgain = false
+    
     let rotatingView = UIView() // 회전할 뷰
     let rotatingBackgroundView = UIView() // 회전할 뷰의 배경
     
@@ -24,7 +26,7 @@ class LoadingViewController: UIViewController {
     }
     
     let descriptionLabel = UILabel().then {
-        $0.text = "목표에 딱 맞는 루틴 찾는중.. 0%"
+        $0.text = "목표에 딱 맞는 루틴 찾는중.."
         $0.textColor = UIColor(28, 27, 31, 1)
         $0.textAlignment = .left
         $0.font = UIFont(name: Font.regular.rawValue, size: 16)
@@ -47,24 +49,17 @@ class LoadingViewController: UIViewController {
         super.viewDidLoad()
         self.view.backgroundColor = .white
         
-        nicknameLabel.text! += "님의"
         
+        nicknameLabel.text! += "님의"
         setLayout()
         
         // 로딩 뷰 설정
         setupRotatingView()
         
         // ai 데이터 생성 대기 시작
-        RoutineDataProvider.shared.startloadAIData {         
-            DispatchQueue.main.async {
-                // 생성 완료되면 다음 페이지로 이동
-                let secondVC = RoutineViewController()
-                secondVC.modalPresentationStyle = .fullScreen
-                self.navigationController?.setViewControllers([secondVC], animated: true)
-            }
-        }
+        tryLoadAIData(tryCount: 1)
     }
-    
+
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
@@ -82,7 +77,35 @@ class LoadingViewController: UIViewController {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         // 뷰가 나타난 후 애니메이션 시작
-        startRotatingAnimation()
+        // 오류 시 다시 나타난 애니메이션을 중복 시작 하지 않게 조건 설정
+        if tryAgain == false { startRotatingAnimation() }
+        
+        // 오류 시 ai 데이터 생성 대기 시작
+        tryLoadAIData(tryCount: 1)
+    }
+    
+    // 최대 3회까지 ai 데이터 요청
+    func tryLoadAIData(tryCount: Int) {
+        RoutineDataProvider.shared.startloadAIData { isLoad in
+            if isLoad {
+                DispatchQueue.main.async {
+                    // 생성 완료되면 다음 페이지로 이동
+                    let secondVC = RoutineViewController()
+                    secondVC.modalPresentationStyle = .fullScreen
+                    self.navigationController?.setViewControllers([secondVC], animated: true)
+                }
+            }
+            // 로드 실패시 3회까지 재시도
+            else if tryCount < 3 {
+                self.tryLoadAIData(tryCount: tryCount + 1)
+            }
+            // 4회 부터는 에러로 처리하고 로드 시도 중단
+            else {
+                print("tryCount: GPT 데이터 로드 \(tryCount)회 시도. 로드를 실패했습니다.")
+                self.tryAgain = true
+                ErrorViewController.showErrorPage(viewController: self)
+            }
+        }
     }
     
     // 로딩 view 구현
