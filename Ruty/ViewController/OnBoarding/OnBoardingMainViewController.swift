@@ -177,7 +177,6 @@ class OnBoardingMainViewController: UIViewController {
         })
         
         self.tableView.snp.makeConstraints {
-            print(tableView.contentSize.height)
             $0.top.equalTo(descriptionLabel2.snp.bottom).offset(28)
             $0.bottom.left.right.equalToSuperview()
         }
@@ -189,7 +188,7 @@ class OnBoardingMainViewController: UIViewController {
     }
     
     @objc func goBack() {
-        self.dismiss(animated: false)
+        navigationController?.popViewController(animated: true)
     }
     
     @objc func goNextPage() {
@@ -207,9 +206,8 @@ class OnBoardingMainViewController: UIViewController {
             RoutineDataProvider.shared.setGPTParam(prompt: getGPTPrompt())
             
             let secondVC = LoadingViewController()
-            //let secondVC = RoutineViewController() // 디버깅용
             secondVC.modalPresentationStyle = .fullScreen
-            self.present(secondVC, animated: false, completion: nil)
+            navigationController?.pushViewController(secondVC, animated: true)
         }
     }
     
@@ -239,7 +237,6 @@ class OnBoardingMainViewController: UIViewController {
     // MARK: - TableView Func
     private func loadData() {
         data = ImproveSelectDataProvider.shared.fetchData()
-        //updateContentViewHeight()
     }
     
     private func setupTableView() {
@@ -276,7 +273,6 @@ extension OnBoardingMainViewController : UITableViewDelegate, UITableViewDataSou
     
     // MARK: - UITableViewDelegate
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        print("Selected row: \(indexPath.row)")
         
         // 클릭한 cell 에 접근
         if let selectedCell = tableView.cellForRow(at: indexPath) as? ImproveSelectTableViewCell {
