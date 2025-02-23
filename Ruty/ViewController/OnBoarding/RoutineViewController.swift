@@ -85,6 +85,8 @@ class RoutineViewController: UIViewController {
     
     private var routinesData = [[JSONModel.RecommendedRoutine]]()
     
+    private var addRoutineIdList = [Int]()
+    
     var isReload: Bool = false
     
     override func viewDidLoad() {
@@ -115,8 +117,7 @@ class RoutineViewController: UIViewController {
     }
     
     override func viewWillAppear(_ animated: Bool) {
-        print("view will appear")
-        
+        tableView.reloadData()
         // 온보딩에서 현재 뷰를 로드한 경우
         if !isReload {
             // 기본 네비게이션바 비활성화
@@ -125,7 +126,6 @@ class RoutineViewController: UIViewController {
         
         // 메인홈에서 현재 뷰를 다시 로드한 경우
         else {
-            print("메인홈에서 불러왔습니다")
             // 스와이프 뒤로 가기 제스처 다시 활성화
             navigationController?.interactivePopGestureRecognizer?.delegate = self
             navigationController?.interactivePopGestureRecognizer?.isEnabled = true
@@ -134,12 +134,7 @@ class RoutineViewController: UIViewController {
     
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        print("view did layout subviews")
         self.updateContentViewHeight()
-    }
-    
-    override func viewDidAppear(_ animated: Bool) {
-        print("view did appear")
     }
     
     // MARK: - 카테고리 관련 함수
@@ -196,14 +191,12 @@ class RoutineViewController: UIViewController {
         self.view.layoutIfNeeded() // 레이아웃 강제 업데이트
         tableView.sizeToFit()
         let tableViewHeight = tableView.contentSize.height
-        print("tableViewHeight \(tableViewHeight)")
         let contentHeight = tableViewHeight
                             + titleLabel.frame.height
                             + descriptionLabel1.frame.height
                             + descriptionLabel2.frame.height
                             + categoryCollectionView.contentSize.height
                             + 115 // 기타 고정된 간격
-        print("contentHeight \(contentHeight)")
         // 스크롤뷰의 콘텐츠 크기 업데이트
         contentScrollView.contentSize = CGSize(width: contentScrollView.frame.width, height: contentHeight)
         
@@ -214,7 +207,6 @@ class RoutineViewController: UIViewController {
     
     // 모든 루틴을 추가해서 추가할 루틴이 없을 경우 헬퍼 텍스트 표기
     func checkRoutineEmpty() {
-        print("routinesData: \(routinesData)")
         let routines = routinesData.flatMap { $0 }
         if routines.isEmpty {
             contentScrollView.addSubview(emptyLabel)
@@ -222,6 +214,13 @@ class RoutineViewController: UIViewController {
                 $0.centerX.centerY.equalToSuperview()
             }
         }
+    }
+    
+    // 추가한 루틴 id 를 deactive 할 리스트에 추가
+    @objc func deactivateRoutine(_ notification: Notification) {
+        guard let userInfo = notification.userInfo else { return }
+        guard let routineId = userInfo["id"] as? Int else { return }
+        addRoutineIdList.append(routineId)
     }
     
     // MARK: - tap 함수
@@ -240,10 +239,7 @@ class RoutineViewController: UIViewController {
         secondVC.routineDescription = description
         secondVC.category = category
         secondVC.routineName = routineName
-        guard let navigationController = navigationController else {
-            print("네비게이션이 없음")
-            return
-        }
+        guard let navigationController = navigationController else { return }
         navigationController.pushViewController(secondVC, animated: true)
     }
     
@@ -258,6 +254,8 @@ class RoutineViewController: UIViewController {
     // MARK: - ui 기본 설정 및 layout
     private func addObserver() {
         NotificationCenter.default.addObserver(self, selector: #selector(moveToSettingPage(_:)), name: Notification.Name("moveToGoalSettingVC"), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(deactivateRoutine(_:)), name: Notification.Name("AddRoutine"), object: nil)
+
     }
     
     private func setupCollectionView() {
@@ -360,7 +358,10 @@ extension RoutineViewController : UITableViewDelegate, UITableViewDataSource {
         }
         let item = routinesData[selectedCategoryIndex][indexPath.row]
         
-        cell.setContent(id: item.id, category: item.category, routineName: item.title, description: item.description, markImage: RoutineCategoryImage.shared[item.category] ?? "housing")
+        var isAdd = false
+        if addRoutineIdList.contains(item.id) { isAdd = true }
+        
+        cell.setContent(id: item.id, category: item.category, routineName: item.title, description: item.description, markImage: RoutineCategoryImage.shared[item.category] ?? "housing", isAdd: isAdd)
         
         // cell 클릭시 보이게 되는 회색 배경색 제거
         let background = UIView()
@@ -389,21 +390,12 @@ extension RoutineViewController : UITableViewDelegate, UITableViewDataSource {
     
     // MARK: - UITableViewDelegate
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        print("Selected row: \(indexPath.row)")
-           
-        // 클릭한 cell 에 접근
-        if let selectedCell = tableView.cellForRow(at: indexPath) as? RoutineCellTableViewCell {
-            //selectedCell.tapCell()
-        }
-
         tableView.deselectRow(at: indexPath, animated: true)
     }
-
 }
 
 extension RoutineViewController: UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        print("appearCategory.count \(appearCategory.count)")
         return appearCategory.count
     }
 

@@ -9,6 +9,23 @@ import UIKit
 
 class RoutineCellTableViewCell: UITableViewCell {
 
+    var isAdd = false {
+        didSet {
+            if isAdd == true {
+                addRoutineBtnView.backgroundColor = UIColor.fill.disabled
+                addRoutineBtnMark.image = UIImage(named: "Icon-Plus-Disabled")
+                addRoutineBtnLabel.textColor = UIColor.font.disabled
+                addRoutineBtnView.isUserInteractionEnabled = false
+            }
+            else {
+                addRoutineBtnView.backgroundColor = UIColor(99, 102, 241, 1)
+                addRoutineBtnMark.image = UIImage(named: "Icon-Plus")
+                addRoutineBtnLabel.textColor = .white
+                addRoutineBtnView.isUserInteractionEnabled = true
+            }
+        }
+    }
+    
     static let identifier = "RoutineCellTableViewCell"
     
     private var id: Int?
@@ -67,19 +84,21 @@ class RoutineCellTableViewCell: UITableViewCell {
         fatalError("init(coder:) has not been implemented")
     }
     
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        isAdd = false
+    }
+    
     func setCellBlockHeight() {
         routineLabel.sizeToFit()
         descripton.sizeToFit()
         let fitedHeight = routineLabel.frame.size.height + descripton.frame.size.height
-        print("fitedHeight \(fitedHeight)")
-        print("text: \(routineLabel.text)")
         cellBlock.snp.updateConstraints {
             $0.height.equalTo(fitedHeight + 128) // 추천 내용 길이에 따라 동적으로 변화
         }
     }
     
     func updateCellBlockHeight(row: Int) {
-        print("row: \(row)")
         let newHeight = row * 100
         cellBlock.snp.updateConstraints {
             $0.height.equalTo(newHeight + 128) // 추천 내용 길이에 따라 동적으로 변화
@@ -137,12 +156,14 @@ class RoutineCellTableViewCell: UITableViewCell {
         addTarget()
     }
     
-    func setContent(id: Int, category: String, routineName: String, description: String, markImage: String) {
+    func setContent(id: Int, category: String, routineName: String, description: String, markImage: String, isAdd: Bool) {
         self.id = id
         self.category = category
         self.routineLabel.text = routineName
         self.descripton.text = description
         self.markImage.image = UIImage(named: markImage)
+        
+        self.isAdd = isAdd
     }
 
     @objc func postNotification() {

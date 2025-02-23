@@ -36,7 +36,7 @@ class RoutineDataProvider {
               let param = try? JSONSerialization.jsonObject(with: jsonData) as? [String: Any] else { return }
         print("gpt Request Params: \(param)")
         
-        let accessToken = Bundle.main.infoDictionary?["ACCESS_TOKEN"] as! String
+        let accessToken = UserDefaults.standard.string(forKey: "accessToken") ?? ""
         let header: HTTPHeaders = [
             "Authorization": "Bearer \(accessToken)",
             "Content-Type":"application/json", "Accept":"application/json"
@@ -53,7 +53,6 @@ class RoutineDataProvider {
             case .success(let data):
                 do {
                     let decodedResponse = try JSONDecoder().decode(JSONModel.RecommendedRoutinesResponse.self, from: data)
-                    print("gpt decodedResponse:\(decodedResponse)")
                     if decodedResponse.message == "created" {
                         let routines = decodedResponse
                         self.rawRoutinesData = routines
