@@ -49,7 +49,7 @@ class JSONModel {
         let data: Bool?
     }
     
-    struct SignUpResponse: Codable {
+    struct APIResponse: Codable {
         let message: String
         let data: Int
     }
@@ -96,5 +96,42 @@ class JSONModel {
     
     struct Delete: Encodable {
         let code: String
+    }
+    
+    struct GoalSettingResponse: Codable {
+        let message: String
+        let data: Int
+    }
+    
+    struct GoogleUserInfoResponse: Codable {
+        let message: String
+        let data: GoogleUserInfo
+    }
+
+    struct GoogleUserInfo: Codable {
+        let memberId: Int
+        let email: String
+        let nickName: String
+        let name: String
+        let picture: String?
+        let isAgree: Bool
+        let socialType: String
+        let refreshToken: String
+    }
+    
+    struct AppleUserInfoResponse: Codable {
+        let message: String
+        let data: AppleUserInfo
+    }
+
+    struct AppleUserInfo: Codable {
+        let memberId: Int
+        let email: String
+        let nickName: String
+        let name: String?
+        let picture: String?
+        let isAgree: Bool
+        let socialType: String
+        let refreshToken: String
     }
 }

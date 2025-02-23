@@ -182,9 +182,6 @@ class GoalSettingViewController: UIViewController {
             let generator = UISelectionFeedbackGenerator()
             generator.selectionChanged()
         }
-        
-        // 라벨 업데이트
-        print("\(Int(roundedValue - 1))개월")
     }
     
     
@@ -264,7 +261,6 @@ class GoalSettingViewController: UIViewController {
             sender.backgroundColor = UIColor(224, 231, 255, 1)
             sender.layer.borderColor = UIColor(129, 140, 248, 1).cgColor
             addDay(dayString: dayString)
-            print(selectedDays)
         }
         else {
             sender.backgroundColor = .white
@@ -301,18 +297,37 @@ class GoalSettingViewController: UIViewController {
                 "month": Int(slider.value - 1)
             ]
             
-            print("jsonBody: \(jsonBody)")
-            
-            NetworkManager.shared.sendRequest(url: url, method: "POST", jsonBody: jsonBody) {
-                
-                // completion 지정
-                CATransaction.begin()
-                CATransaction.setCompletionBlock {
-                    // 이전 화면으로 돌아간 후에 toast message 보여줌
-                    self.showToastAfterPop()
+            NetworkManager.shared.sendRequest(url: url, method: "POST", jsonBody: jsonBody) { result in
+                switch result {
+                case .success(let data):
+                    do {
+                        let decodedResponse = try JSONDecoder().decode(JSONModel.GoalSettingResponse.self, from: data)
+                        if decodedResponse.message == "created" {
+                            NotificationCenter.default.post(name: Notification.Name("AddRoutine"), object: nil, userInfo: ["id" : self.id!])
+                                
+                            
+                            // completion 지정
+                            CATransaction.begin()
+                            CATransaction.setCompletionBlock {
+                                // 이전 화면으로 돌아간 후에 toast message 보여줌
+                                self.showToastAfterPop()
+                            }
+                            self.navigationController?.popViewController(animated: true)
+                            CATransaction.commit()
+                        }
+                        else {
+                            print("서버 연결 오류")
+                            ErrorViewController.showErrorPage(viewController: self)
+                        }
+                    } catch {
+                        print("JSON 디코딩 오류: \(error)")
+                        ErrorViewController.showErrorPage(viewController: self)
+                    }
+                case .failure(let error):
+                    // 요청이 실패한 경우
+                    print("API 요청 실패: \(error.localizedDescription)")
+                    ErrorViewController.showErrorPage(viewController: self)
                 }
-                self.navigationController?.popViewController(animated: true)
-                CATransaction.commit()
             }
         }
     }

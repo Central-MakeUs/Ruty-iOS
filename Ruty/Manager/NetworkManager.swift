@@ -22,7 +22,7 @@ class NetworkManager {
     // JSONEncoding.default: 주로 POST, PUT 등의 요청에서 사용하며, 파라미터를 JSON 형태의 본문에 인코딩합니다.
     // URLEncoding.default: GET 요청에서 URL에 파라미터를 추가하는 데 사용, 쿼리 파라미터를 url 에 추가하는 경우
     func requestAPI(url: String, method: HTTPMethod, encoding: ParameterEncoding, param: Parameters?, completion : @escaping (Result<Data, Error>) -> Void) {
-        let accessToken = Bundle.main.infoDictionary?["ACCESS_TOKEN"] as! String
+        let accessToken = UserDefaults.standard.string(forKey: "accessToken") ?? ""
         let header: HTTPHeaders = [
             "Authorization": "Bearer \(accessToken)",
             "Content-Type":"application/json", "Accept":"application/json"
@@ -45,9 +45,9 @@ class NetworkManager {
     }
     
     // param, body 모두 있는 경우
-    func sendRequest(url: String, method: String, jsonBody: [String : Any], completion : @escaping () -> ()) {
+    func sendRequest(url: String, method: String, jsonBody: [String : Any], completion : @escaping (Result<Data, Error>) -> Void) {
         // access token 가져오기 및 헤더 구성
-        let accessToken = Bundle.main.infoDictionary?["ACCESS_TOKEN"] as! String
+        let accessToken = UserDefaults.standard.string(forKey: "accessToken") ?? ""
         let headers: HTTPHeaders = [
             "Authorization": "Bearer \(accessToken)",
             "Content-Type": "application/json",
@@ -74,22 +74,14 @@ class NetworkManager {
             return
         }
         
-        print("요청 헤더: \(request.allHTTPHeaderFields ?? [:])")
-        
         AF.request(request)
             .validate(statusCode: 200..<300)
             .responseData { response in
                 switch response.result {
                 case .success(let data):
-                    // Data를 문자열로 변환하여 출력
-                    if let jsonString = String(data: data, encoding: .utf8) {
-                        print("JSON 응답 데이터 문자열: \(jsonString)")
-                        completion()
-                    } else {
-                        print("Data를 문자열로 변환할 수 없습니다.")
-                    }
+                    completion(.success(data))
                 case .failure(let error):
-                    print("요청 실패: \(error)")
+                    completion(.failure(error))
                 }
             }
     }
