@@ -7,8 +7,11 @@
 
 import UIKit
 import Alamofire
+import AuthenticationServices
 
 class MainHomeViewController: UIViewController {
+    
+    //private var socialType: String?
     
     private let topBackgroundView = UIView().then {
         $0.backgroundColor = UIColor.background.secondary
@@ -84,15 +87,16 @@ class MainHomeViewController: UIViewController {
     
     let deleteBtn = UIButton().then {
         $0.setTitle("회원탈퇴", for: .normal)
-        $0.backgroundColor = .black
+        $0.backgroundColor = .white
         $0.layer.cornerRadius = 10
-        $0.setTitleColor(.white, for: .normal)
+        $0.setTitleColor(UIColor.font.tertiary, for: .normal)
+        $0.titleLabel?.font = UIFont(name: Font.semiBold.rawValue, size: 16)
         $0.addTarget(self, action: #selector(tapDeleteBtn), for: .touchUpInside)
     }
-
+    
     // 카테고리 데이터
     private var categoryLevels = JSONModel.CategoryLevels(message: "", data: [])
-    private var sortedCategoryLevels = [JSONModel.CategoryLevel](repeating: JSONModel.CategoryLevel(category: "", level: 1, totalPoints: 1), count: 4)
+    private var sortedCategoryLevels = [JSONModel.CategoryLevel](repeating: JSONModel.CategoryLevel(category: "", level: 1, totalPoints: 0), count: 4)
     private var categoryLevelAfterRoutineDone = JSONModel.CategoryLevelAfterRoutineDone(message: "", data: JSONModel.CategoryLevel(category: "", level: 1, totalPoints: 1))
     
     // 루틴 데이터
@@ -104,40 +108,82 @@ class MainHomeViewController: UIViewController {
         super.viewDidLoad()
         loadCategoryLevel()
         loadTodayData()
-
+        //loadUserInfo()
+        
         setUI()
         setupCollectionView()
         setupTableView()
         setLayout()
-        //checkRoutineEmptyReason()
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        loadTodayData()
     }
     
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        print("view did layout subviews")
         self.updateContentViewHeight()
     }
     
     // MARK: - api 요청
     
+    // 회원 탈퇴 클릭
     @objc func tapDeleteBtn() {
+        if DataManager.shared.socialType == "APPLE" {
+            let provider = ASAuthorizationAppleIDProvider()
+            let requset = provider.createRequest()
+            
+            // 사용자에게 제공받을 정보를 선택 (이름 및 이메일)
+            requset.requestedScopes = [.fullName, .email]
+            
+            let controller = ASAuthorizationController(authorizationRequests: [requset])
+            controller.delegate = self
+            controller.presentationContextProvider = self
+            controller.performRequests()
+        }
+        else if DataManager.shared.socialType == "GOOGLE" {
+            requestDeleteUser()
+        }
+        
+        else { print("소셜 로그인 정보가 없음") }
+    }
+    
+    // 회원 탈퇴 요청
+    func requestDeleteUser() {
+        print("\(DataManager.shared.socialType) 탈퇴 요청 시도")
+        
         let url = NetworkManager.shared.getRequestURL(api: "/api/profile")
-        //let param : Parameters = ["code" : authorizationCodeString]
-        let param = JSONModel.Delete(code: UserDefaults.standard.string(forKey: "authCode")!)
-        print("param \(param)")
-        guard let jsonData = try? JSONEncoder().encode(param),
-              var param = try? JSONSerialization.jsonObject(with: jsonData) as? [String: Any] else { return }
-        NetworkManager.shared.requestAPI(url: url, method: .delete, encoding: JSONEncoding.default, param: param) { result in
+        var param: [String : Any] = [:]
+        
+        if DataManager.shared.socialType == "APPLE" {
+            let model = JSONModel.Delete(code: UserDefaults.standard.string(forKey: "authCode")!)
+            guard let jsonData = try? JSONEncoder().encode(model),
+                var _param = try? JSONSerialization.jsonObject(with: jsonData) as? [String: Any] else { return }
+            param = _param
+        }
+
+        NetworkManager.shared.requestAPI(url: url, method: .delete, encoding: URLEncoding.default, param: param) { result in
             switch result {
             case .success(let data):
-                if let jsonString = String(data: data, encoding: .utf8) {
-                    print("모든 루틴 JSON 문자열: \(jsonString)")
-                } else {
-                    print("Data를 문자열로 변환할 수 없습니다.")
+                do {
+                    let decodedResponse = try JSONDecoder().decode(JSONModel.APIResponse.self, from: data)
+                    if decodedResponse.message == "delete" {
+                        print("\(DataManager.shared.socialType) 탈퇴 성공")
+                        self.goToLoginPage()
+                    }
+                    else {
+                        print("서버 연결 오류")
+                        ErrorViewController.showErrorPage(viewController: self)
+                    }
+
+                } catch {
+                    ErrorViewController.showErrorPage(viewController: self)
                 }
+                
             case .failure(let error):
                 // 요청이 실패한 경우
-                print("API 요청 실패: \(error.localizedDescription)")
+                print("탈퇴 API 요청 실패: \(error.localizedDescription)")
+                ErrorViewController.showErrorPage(viewController: self)
             }
         }
     }
@@ -155,9 +201,10 @@ class MainHomeViewController: UIViewController {
                     self.makeShowTodayRoutine()
                     
                     self.tableView.reloadData()
+                    self.updateContentViewHeight()
                     self.checkRoutineEmptyReason()
                 } catch {
-                    print("오늘의 루틴 데이터 JSON 디코딩 오류: \(error)")
+                    print("JSON 디코딩 오류: \(error)")
                 }
                 
             case .failure(let error):
@@ -188,7 +235,7 @@ class MainHomeViewController: UIViewController {
             }
         }
     }
-     
+    
     // 사용자의 모든 루틴 요청
     func loadAllData() {
         let url = NetworkManager.shared.getRequestURL(api: "/api/routine")
@@ -216,25 +263,29 @@ class MainHomeViewController: UIViewController {
             case .success(let data):
                 do {
                     let decodedResponse = try JSONDecoder().decode(JSONModel.CategoryLevelAfterRoutineDone.self, from: data)
-                    self.categoryLevelAfterRoutineDone = decodedResponse
-                    print("categoryLevels \(self.categoryLevelAfterRoutineDone)")
-                    
-                    let category = self.categoryLevelAfterRoutineDone.data.category
-                    let point = self.categoryLevelAfterRoutineDone.data.totalPoints
-                    
-                    let indexPath = IndexPath(item: categoryIndex[category] ?? 0, section: 0)
-                    guard let cell = self.categoryCollectionView.cellForItem(at: indexPath) as? CategoryLevelCell else { return }
-                    cell.setContent(category: category, point: point)
+                    if decodedResponse.message == "ok" {
+                        self.categoryLevelAfterRoutineDone = decodedResponse
+                        let category = self.categoryLevelAfterRoutineDone.data.category
+                        let point = self.categoryLevelAfterRoutineDone.data.totalPoints
+                        
+                        let indexPath = IndexPath(item: categoryIndex[category] ?? 0, section: 0)
+                        guard let cell = self.categoryCollectionView.cellForItem(at: indexPath) as? CategoryLevelCell else { return }
+                        cell.setContent(category: category, point: point)
+                        
+                        // 루틴 삭제후 테이블 fetch
+                        self.loadTodayData()
+                        self.updateContentViewHeight()
+                    }
+                    else {
+                        ErrorViewController.showErrorPage(viewController: self)
+                    }
                 } catch {
-                    print("JSON 디코딩 오류: \(error)")
+                    ErrorViewController.showErrorPage(viewController: self)
                 }
-                
-                // 루틴 삭제후 테이블 fetch
-                self.loadTodayData()
-                
             case .failure(let error):
                 // 요청이 실패한 경우
                 print("API 요청 실패: \(error.localizedDescription)")
+                ErrorViewController.showErrorPage(viewController: self)
             }
         }
     }
@@ -270,7 +321,6 @@ class MainHomeViewController: UIViewController {
                 }
             }
         }
-        print("sortedTodayRoutineData 정렬, done 제거됨:  \(sortedTodayRoutineData)")
     }
     
     // 사용자에게 보여줄 루틴 데이터 하나의 리스트로 정리
@@ -321,8 +371,9 @@ class MainHomeViewController: UIViewController {
         tableView.sizeToFit()
         let tableViewHeight = tableView.contentSize.height
         var contentHeight = tableViewHeight
-                            + 291 // 상단부 고정된 간격
-                            + 156 // 하단 버튼들 고정된 간격
+        + 291 // 상단부 고정된 간격
+        + 156 // 하단 버튼들 고정된 간격
+        + 48 // 회원 탈퇴 버튼 길이 추가
         
         // 스크롤뷰 콘텐츠 최소 길이를 기기 화면 크기로 지정
         let screenHeight = view.safeAreaLayoutGuide.layoutFrame.height
@@ -354,15 +405,8 @@ class MainHomeViewController: UIViewController {
     private func setLayout() {
         [topBackgroundView, bottomBackgroundView, contentScrollView].forEach({ view.addSubview($0) })
         [contentView].forEach({ contentScrollView.addSubview($0) })
-        [deleteBtn, categoryBoxView, tableViewTopView, tableViewTopLabel, tableView, recommendRoutineBtn].forEach({ contentView.addSubview($0) })
+        [categoryBoxView, tableViewTopView, tableViewTopLabel, tableView, recommendRoutineBtn, deleteBtn].forEach({ contentView.addSubview($0) })
         [categoryCollectionView].forEach({ categoryBoxView.addSubview($0) })
-        
-        // 계정 탈퇴 테스트할때 넣고 하기
-//        self.deleteBtn.snp.makeConstraints({
-//            $0.top.equalToSuperview()
-//            $0.centerY.centerX.equalToSuperview()
-//            $0.height.width.equalTo(56)
-//        })
         
         self.topBackgroundView.snp.makeConstraints {
             $0.right.left.equalTo(self.view.safeAreaLayoutGuide)
@@ -410,8 +454,14 @@ class MainHomeViewController: UIViewController {
             $0.height.equalTo(500)
         }
         
-        self.recommendRoutineBtn.snp.makeConstraints {
+        self.deleteBtn.snp.makeConstraints{
             $0.bottom.equalTo(tableView.snp.bottom).inset(20)
+            $0.left.right.equalToSuperview().inset(107)
+            $0.height.equalTo(48)
+        }
+        
+        self.recommendRoutineBtn.snp.makeConstraints {
+            $0.bottom.equalTo(deleteBtn.snp.top).offset(-20)
             $0.left.right.equalToSuperview().inset(20)
             $0.height.equalTo(48)
         }
@@ -428,6 +478,12 @@ class MainHomeViewController: UIViewController {
         view.backgroundColor = UIColor.background.secondary
         // 기본 네비게이션바 비활성화
         navigationController?.setNavigationBarHidden(true, animated: false)
+    }
+    
+    private func goToLoginPage() {
+        let nextVC = LoginViewController()
+        self.view.window?.rootViewController = nextVC
+        self.view.window?.makeKeyAndVisible()
     }
 }
 
@@ -489,5 +545,36 @@ extension MainHomeViewController: UICollectionViewDataSource, UICollectionViewDe
         cell.setContent(category: sortedCategoryLevels[indexPath.row].category, point: sortedCategoryLevels[indexPath.row].totalPoints)
         cell.setupLayers()
         return cell
+    }
+}
+
+extension MainHomeViewController: ASAuthorizationControllerPresentationContextProviding {
+    // 인증창을 보여주기 위한 메서드 (인증창을 보여 줄 화면을 설정)
+    func presentationAnchor(for controller: ASAuthorizationController) -> ASPresentationAnchor {
+        self.view.window ?? UIWindow()
+    }
+}
+
+extension MainHomeViewController: ASAuthorizationControllerDelegate {
+    // 로그인 실패 시
+    func authorizationController(controller: ASAuthorizationController, didCompleteWithError error: any Error) {
+    }
+    
+    // Apple ID 로그인에 성공한 경우, 사용자의 인증 정보를 확인하고 필요한 작업을 수행합니다
+    func authorizationController(controller: ASAuthorizationController, didCompleteWithAuthorization authorization: ASAuthorization) {
+        switch authorization.credential {
+        case let appleIdCredential as ASAuthorizationAppleIDCredential:
+            if let authorizationCodeData = appleIdCredential.authorizationCode,
+               let authorizationCodeString = String(data: authorizationCodeData, encoding: .utf8) {
+                
+                UserDefaults.standard.set(authorizationCodeString, forKey: "authCode")
+                requestDeleteUser()
+                
+            } else {
+                print("authorizationCode 변환에 실패했습니다.")
+            }
+            
+        default: break
+        }
     }
 }
