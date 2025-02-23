@@ -75,7 +75,6 @@ class ErrorViewController: UIViewController {
     }
     
     @objc func goBackPage() {
-        print("뒤로가기")
         self.dismiss(animated: true)
     }
     
@@ -83,6 +82,5 @@ class ErrorViewController: UIViewController {
         let errorVC = ErrorViewController()
         errorVC.modalPresentationStyle = .fullScreen
         viewController.present(errorVC, animated: true, completion: nil)
-        print("??")
     }
 }

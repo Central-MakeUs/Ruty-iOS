@@ -330,7 +330,6 @@ class SignUpAgreeViewController: UIViewController {
             if let index = characterIndex(at: tapLocation, in: label),
                let range = (text as NSString).range(of: "이용약관").toRange(),
                range.contains(index) {
-                print("이용약관 클릭됨!")
                 // 원하는 함수 호출
                 let pageURL = NSURL(string: "https://humorous-bayberry-36a.notion.site/1735f772702f80668c0bc1a20f5e43be?pvs=4")
                 let infoView: SFSafariViewController = SFSafariViewController(url: pageURL as! URL)
@@ -339,7 +338,6 @@ class SignUpAgreeViewController: UIViewController {
             if let index = characterIndex(at: tapLocation, in: label),
                let range = (text as NSString).range(of: "개인정보 수집·이용").toRange(),
                range.contains(index) {
-                print("개인정보 클릭됨!")
                 // 원하는 함수 호출
                 let pageURL = NSURL(string: "https://humorous-bayberry-36a.notion.site/1735f772702f80448efad1b40945eda3?pvs=4")
                 let infoView: SFSafariViewController = SFSafariViewController(url: pageURL as! URL)
@@ -351,7 +349,6 @@ class SignUpAgreeViewController: UIViewController {
             if let index = characterIndex(at: tapLocation, in: label),
                let range = (text as NSString).range(of: "마케팅 활용 및 광고성 정보 수신 동의").toRange(),
                range.contains(index) {
-                print("마케팅 클릭됨!")
                 // 원하는 함수 호출
                 let pageURL = NSURL(string: "https://humorous-bayberry-36a.notion.site/1735f772702f80448efad1b40945eda3?pvs=4")
                 let infoView: SFSafariViewController = SFSafariViewController(url: pageURL as! URL)
@@ -432,7 +429,6 @@ class SignUpAgreeViewController: UIViewController {
     
     @objc func tapNextPageBtn() {
         if isRequiredAgree {
-            print("다음 페이지 이동")
             let firstVC = SignUpWriteNameViewController()
             firstVC.isAgree = isOptionalAgree
             firstVC.modalPresentationStyle = .fullScreen

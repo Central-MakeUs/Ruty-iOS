@@ -148,7 +148,7 @@ class SignUpWriteNameViewController: UIViewController {
     func requestSignUp() {
         let url = NetworkManager.shared.getRequestURL(api: "/api/member/sign")
         let param = JSONModel.SingIn(nickName: textField.text!, isAgree: isAgree)
-        print("requestAPI 넣기전 Request Params: \(param)")
+        
         // Encodable을 JSON으로 변환
         guard let jsonData = try? JSONEncoder().encode(param),
               var param = try? JSONSerialization.jsonObject(with: jsonData) as? [String: Any] else { return }
@@ -163,9 +163,8 @@ class SignUpWriteNameViewController: UIViewController {
             switch result {
             case .success(let data):
                 do {
-                    let decodedResponse = try JSONDecoder().decode(JSONModel.SignUpResponse.self, from: data)
+                    let decodedResponse = try JSONDecoder().decode(JSONModel.APIResponse.self, from: data)
                     if decodedResponse.message == "update" {
-                        print("다음페이지로 이동")
                         DataManager.shared.userNickName = self.textField.text
                         self.moveToNextPage()
                     }
@@ -245,7 +244,6 @@ class SignUpWriteNameViewController: UIViewController {
         else if characterCount >= 21 {
             // 20자 초과한 글자는 바로 삭제
             textField.deleteBackward()
-            print(textField.text)
         }
         else {
             isNickNameCheckd = 2

@@ -16,7 +16,7 @@ class CategoryLevelCell: UICollectionViewCell {
     }
     private let backgroundLayer = CAShapeLayer()
     private let fillLayer = CAShapeLayer()
-    var progress: CGFloat = 0.5 {
+    var progress: CGFloat = 0.0 {
         didSet {
             updateFillLayer()
         }
@@ -44,7 +44,7 @@ class CategoryLevelCell: UICollectionViewCell {
     }
     
     private let categoryLabel = UILabel().then {
-        $0.text = "test"
+        $0.text = "-"
         $0.textColor = UIColor(0, 0, 0, 1)
         $0.textAlignment = .center
         $0.font = UIFont(name: Font.medium.rawValue, size: 14)
@@ -132,7 +132,7 @@ class CategoryLevelCell: UICollectionViewCell {
     override func layoutSubviews() {
         super.layoutSubviews()
         DispatchQueue.main.async {
-            self.setupLayers()  // 여기서 호출하여 bounds 확정 후 적용
+            self.setupLayers()
         }
     }
     
@@ -141,7 +141,6 @@ class CategoryLevelCell: UICollectionViewCell {
     }
     
     func setContent(category: String, point: Int) {
-        print("category: \(category), point : \(point)")
         switch category {
         case "HOUSE":
             categoryIcon.image = UIImage(named: "housing")
@@ -165,9 +164,6 @@ class CategoryLevelCell: UICollectionViewCell {
         let levelAndPercent = getLevelAndPercent(level: 1 , point: point, sumPoint: 0)
         let level = levelAndPercent.0
         let pointPercent = levelAndPercent.1
-        
-        print("level : \(level)")
-        print("pointPercent : \(pointPercent)")
         
         levelLabel.text = String("Lv.\(level)")
         progress = CGFloat(pointPercent)
