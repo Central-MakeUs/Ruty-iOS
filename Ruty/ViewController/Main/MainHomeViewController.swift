@@ -200,7 +200,11 @@ class MainHomeViewController: UIViewController {
                     self.sortTodayRoutineData()
                     self.makeShowTodayRoutine()
                     
-                    self.tableView.reloadData()
+                    
+                    DispatchQueue.main.async {
+                        self.tableView.reloadData()
+                    }
+                    
                     self.updateContentViewHeight()
                     self.checkRoutineEmptyReason()
                 } catch {
@@ -225,7 +229,10 @@ class MainHomeViewController: UIViewController {
                     self.categoryLevels = decodedResponse
                     print("categoryLevels \(self.categoryLevels)")
                     self.sortCategoryLevel()
-                    self.categoryCollectionView.reloadData()
+                    
+                    DispatchQueue.main.async {
+                        self.categoryCollectionView.reloadData()
+                    }
                 } catch {
                     print("JSON 디코딩 오류: \(error)")
                 }
