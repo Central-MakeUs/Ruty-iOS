@@ -57,7 +57,7 @@ class LoadingViewController: UIViewController {
         setupRotatingView()
         
         // ai 데이터 생성 대기 시작
-        tryLoadAIData(tryCount: 1)
+        //tryLoadAIData(tryCount: 1)
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -80,7 +80,7 @@ class LoadingViewController: UIViewController {
         // 오류 시 다시 나타난 애니메이션을 중복 시작 하지 않게 조건 설정
         if tryAgain == false { startRotatingAnimation() }
         
-        // 오류 시 ai 데이터 생성 대기 시작
+        // ai 데이터 생성 대기 시작
         tryLoadAIData(tryCount: 1)
     }
     
@@ -90,9 +90,17 @@ class LoadingViewController: UIViewController {
             if isLoad {
                 DispatchQueue.main.async {
                     // 생성 완료되면 다음 페이지로 이동
-                    let secondVC = RoutineViewController()
-                    secondVC.modalPresentationStyle = .fullScreen
-                    self.navigationController?.setViewControllers([secondVC], animated: true)
+//                    let secondVC = RoutineViewController()
+//                    secondVC.modalPresentationStyle = .fullScreen
+//                    self.navigationController?.setViewControllers([secondVC], animated: true)
+                    print("루트 생성 성공")
+                    let nextVC = RoutineViewController()
+                    let newNavController = UINavigationController(rootViewController: nextVC)
+                    newNavController.modalPresentationStyle = .fullScreen
+                    DispatchQueue.main.async { // Dispatch는 빼도 되긴할듯
+                         self.view.window?.rootViewController = newNavController
+                         self.view.window?.makeKeyAndVisible()
+                    }
                 }
             }
             // 로드 실패시 3회까지 재시도

@@ -277,11 +277,23 @@ class MainHomeViewController: UIViewController {
                         
                         let indexPath = IndexPath(item: categoryIndex[category] ?? 0, section: 0)
                         guard let cell = self.categoryCollectionView.cellForItem(at: indexPath) as? CategoryLevelCell else { return }
+
+                        let preLevel = cell.level
+
                         cell.setContent(category: category, point: point)
                         
                         // 루틴 삭제후 테이블 fetch
                         self.loadTodayData()
                         self.updateContentViewHeight()
+                        
+                        // 레벨업 한 경우
+                        if preLevel < cell.level {
+                            let popUpVC = ModalPopUpViewController()
+                            popUpVC.category = category
+                            popUpVC.level = cell.level
+                            popUpVC.modalPresentationStyle = .overFullScreen
+                            self.present(popUpVC, animated: true, completion: nil)
+                        }
                     }
                     else {
                         ErrorViewController.showErrorPage(viewController: self)

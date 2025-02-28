@@ -11,6 +11,8 @@ class CategoryLevelCell: UICollectionViewCell {
     
     static let identifier = "CategoryLevelCell"
     
+    var level : Int = 1
+    
     private let gaugeView = UIView().then {
         $0.backgroundColor = .white
     }
@@ -162,7 +164,7 @@ class CategoryLevelCell: UICollectionViewCell {
         }
         
         let levelAndPercent = getLevelAndPercent(level: 1 , point: point, sumPoint: 0)
-        let level = levelAndPercent.0
+        level = levelAndPercent.0
         let pointPercent = levelAndPercent.1
         
         levelLabel.text = String("Lv.\(level)")

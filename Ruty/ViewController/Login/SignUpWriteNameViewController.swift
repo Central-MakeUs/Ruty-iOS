@@ -255,7 +255,8 @@ class SignUpWriteNameViewController: UIViewController {
             print("첫 입력으로 공백은 불가, 다음페이지로 이동 불가")
         }
         else if isNickNameCheckd == 2 || isNickNameCheckd == 3 {
-            requestSignUp()
+            if DataManager.shared.isGuest! { moveToNextPage() }
+            else { requestSignUp() }
         }
         else {
             print("다음페이지로 이동 불가")
