@@ -32,7 +32,12 @@ func showToast(view : UIView , message : String, imageName: String, withDuration
             $0.titleLabel?.font = UIFont(name: Font.semiBold.rawValue, size: 16)
             $0.backgroundColor = .clear
             $0.layer.cornerRadius = 12
-            $0.addAction(UIAction(handler: { _ in buttonAction() }), for: .touchUpInside)
+            $0.addAction(UIAction(handler: { _ in
+                toastBackground.layer.removeAllAnimations() // 기존의 scheduled asyncAfter 애니메이션을 중단 (애니메이션이 있다면)
+                toastBackground.removeFromSuperview() // 토스트 뷰를 즉시 제거
+                // 전달받은 버튼 액션 실행 (루틴 실행 취소 처리)
+                buttonAction()
+            }), for: .touchUpInside)
         }
         return btn
     }()

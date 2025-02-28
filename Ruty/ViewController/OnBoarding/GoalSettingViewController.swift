@@ -28,6 +28,11 @@ class GoalSettingViewController: UIViewController {
     
     let textField = UITextField().then {
         $0.placeholder = ""
+        $0.attributedPlaceholder = NSAttributedString(
+            string: "",
+            attributes: [.foregroundColor: UIColor(156, 163, 175, 1)]
+        )
+        $0.textColor = .black
         //$0.borderStyle = .roundedRect
         $0.backgroundColor = UIColor(243, 244, 246, 1)
         $0.layer.cornerRadius = 16
@@ -355,6 +360,7 @@ class GoalSettingViewController: UIViewController {
         view.backgroundColor = .white
         textField.text = routineName
         textField.placeholder = routineName
+        textField.attributedPlaceholder = NSAttributedString( string: routineName )
     }
     
     func setLayout() {

@@ -536,10 +536,12 @@ extension MainHomeViewController : UITableViewDelegate, UITableViewDataSource {
             selectedCell.tapCell {
                 showToast(view: view, message: "루틴 완료", imageName: "Icon-Circle-Check", withDuration: 0.5, delay: 4.0, buttonTitle: "실행 취소") {
                     // 루틴 실행 취소
+                    print("실행취소")
                     isClickedUndo = true // 완료된 루틴 실행 취소
                     selectedCell.isChecked = false // 루틴 cell check 표기 복구
                     
                 } nonClickAction: {
+                    print("루틴 실행완료")
                     // 루틴 실행 취소를 누르지 않은 경우
                     // 완료된 루틴 리스트에서 삭제
                     if !isClickedUndo {
