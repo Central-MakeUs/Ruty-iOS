@@ -11,8 +11,6 @@ import AuthenticationServices
 
 class MainHomeViewController: UIViewController {
     
-    //private var socialType: String?
-    
     private let topBackgroundView = UIView().then {
         $0.backgroundColor = UIColor.background.secondary
     }
@@ -76,6 +74,32 @@ class MainHomeViewController: UIViewController {
         $0.numberOfLines = 0
     }
     
+    private let addRoutineView = UIView().then {
+        $0.backgroundColor = UIColor.fill.primary
+        $0.layer.cornerRadius = 16
+        $0.isUserInteractionEnabled = true
+    }
+    
+    let addRoutineStackView = UIStackView().then {
+        $0.axis = .horizontal
+        $0.spacing = 12
+        $0.alignment = .center
+        $0.distribution = .equalCentering
+    }
+    
+    private let addRoutineLabel = UILabel().then {
+        $0.text = "새로운 루틴 추가"
+        $0.textColor = .white
+        $0.textAlignment = .left
+        $0.font = UIFont(name: Font.semiBold.rawValue, size: 16)
+        $0.numberOfLines = 0
+    }
+    
+    private let addRoutineMark = UIImageView().then {
+        $0.backgroundColor = .clear
+        $0.image = UIImage(named: "Icon-Plus")
+    }
+    
     private let recommendRoutineBtn = UIButton().then {
         $0.backgroundColor = UIColor.fill.secondary
         $0.layer.cornerRadius = 12
@@ -108,15 +132,16 @@ class MainHomeViewController: UIViewController {
         super.viewDidLoad()
         loadCategoryLevel()
         loadTodayData()
-        //loadUserInfo()
-        
+
         setUI()
+        setObserver()
         setupCollectionView()
         setupTableView()
         setLayout()
     }
     
     override func viewWillAppear(_ animated: Bool) {
+        print("뷰 보여짐")
         loadTodayData()
     }
     
@@ -200,13 +225,12 @@ class MainHomeViewController: UIViewController {
                     self.sortTodayRoutineData()
                     self.makeShowTodayRoutine()
                     
-                    
                     DispatchQueue.main.async {
+                        
+                        self.updateContentViewHeight()
+                        self.checkRoutineEmptyReason()
                         self.tableView.reloadData()
                     }
-                    
-                    self.updateContentViewHeight()
-                    self.checkRoutineEmptyReason()
                 } catch {
                     print("JSON 디코딩 오류: \(error)")
                 }
@@ -345,7 +369,6 @@ class MainHomeViewController: UIViewController {
     // 사용자에게 보여줄 루틴 데이터 하나의 리스트로 정리
     private func makeShowTodayRoutine() {
         showTodayRoutineData = [JSONModel.Routine]() // showTodayRoutineData 초기화
-        
         for routines in sortedTodayRoutineData {
             showTodayRoutineData += routines
         }
@@ -371,9 +394,26 @@ class MainHomeViewController: UIViewController {
                 $0.centerX.equalToSuperview()
             }
         }
+        // 루틴이 다시 생기면 헬퍼 텍스트 제거
+        else {
+            emptyLabel.removeFromSuperview()
+        }
     }
     
     // MARK: - addObserver Func
+    func setObserver() {
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(tapAddRoutineBtn(_:)))
+        addRoutineView.addGestureRecognizer(tapGesture)
+    }
+    
+    @objc func tapAddRoutineBtn(_ sender: UIButton) {
+        let nextVC = GoalSettingViewController()
+        nextVC.modalPresentationStyle = .fullScreen
+        nextVC.isRecommendedData = false
+        nextVC.preViewController = self
+        self.navigationController?.pushViewController(nextVC, animated: true)
+    }
+    
     @objc func tapRecommendRoutineBtn() {
         RoutineDataProvider.shared.loadRecommendedData {
             let nextVC = RoutineViewController()
@@ -393,6 +433,7 @@ class MainHomeViewController: UIViewController {
         + 291 // 상단부 고정된 간격
         + 156 // 하단 버튼들 고정된 간격
         + 48 // 회원 탈퇴 버튼 길이 추가
+        + 56 // 새로운 루틴 버튼 길이 추가
         
         // 스크롤뷰 콘텐츠 최소 길이를 기기 화면 크기로 지정
         let screenHeight = view.safeAreaLayoutGuide.layoutFrame.height
@@ -424,8 +465,11 @@ class MainHomeViewController: UIViewController {
     private func setLayout() {
         [topBackgroundView, bottomBackgroundView, contentScrollView].forEach({ view.addSubview($0) })
         [contentView].forEach({ contentScrollView.addSubview($0) })
-        [categoryBoxView, tableViewTopView, tableViewTopLabel, tableView, recommendRoutineBtn, deleteBtn].forEach({ contentView.addSubview($0) })
+        [categoryBoxView, tableViewTopView, tableViewTopLabel, tableView, addRoutineView, recommendRoutineBtn, deleteBtn].forEach({ contentView.addSubview($0) })
+        [addRoutineStackView].forEach({ addRoutineView.addSubview($0) })
+        [addRoutineMark, addRoutineLabel].forEach({ addRoutineStackView.addArrangedSubview($0) })
         [categoryCollectionView].forEach({ categoryBoxView.addSubview($0) })
+
         
         self.topBackgroundView.snp.makeConstraints {
             $0.right.left.equalTo(self.view.safeAreaLayoutGuide)
@@ -473,15 +517,29 @@ class MainHomeViewController: UIViewController {
             $0.height.equalTo(500)
         }
         
-        self.deleteBtn.snp.makeConstraints{
-            $0.bottom.equalTo(tableView.snp.bottom).inset(20)
-            $0.left.right.equalToSuperview().inset(107)
-            $0.height.equalTo(48)
+        self.addRoutineView.snp.makeConstraints{
+            $0.bottom.equalTo(recommendRoutineBtn.snp.top).offset(-20)
+            $0.left.right.equalToSuperview().inset(20)
+            $0.height.equalTo(56)
+        }
+        
+        self.addRoutineStackView.snp.makeConstraints{
+            $0.center.equalToSuperview()
+        }
+        
+        self.addRoutineMark.snp.makeConstraints {
+            $0.height.equalTo(16)
         }
         
         self.recommendRoutineBtn.snp.makeConstraints {
             $0.bottom.equalTo(deleteBtn.snp.top).offset(-20)
             $0.left.right.equalToSuperview().inset(20)
+            $0.height.equalTo(48)
+        }
+        
+        self.deleteBtn.snp.makeConstraints{
+            $0.bottom.equalTo(tableView.snp.bottom).inset(20)
+            $0.left.right.equalToSuperview().inset(107)
             $0.height.equalTo(48)
         }
         

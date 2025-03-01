@@ -9,6 +9,14 @@ import Foundation
 
 class JSONModel {
     
+    struct CustomGoalSetting: Encodable {
+        let title: String
+        let description: String
+        let weekList: [String]
+        let category : String
+        let month: Int
+    }
+    
     struct GoogleLogin: Encodable {
         let platformType: String
         let code: String
