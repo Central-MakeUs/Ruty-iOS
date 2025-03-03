@@ -128,7 +128,7 @@ class LoginViewController: UIViewController {
     }
     
     func setLayout() {
-        [RutyIcon, RutyLogo, googleLoginView, appleLoginView, guestLoginBtn].forEach({ view.addSubview($0) })
+        [RutyIcon, RutyLogo, googleLoginView, appleLoginView].forEach({ view.addSubview($0) })
         [googleStackView, googleLoginLabel, googleLoginLabelLogo].forEach({ googleLoginView.addSubview($0) })
         [appleStackView, appleLoginLabel, appleLoginLabelLogo].forEach({ appleLoginView.addSubview($0) })
         [googleLoginLabelLogo, googleLoginLabel].forEach({ googleStackView.addArrangedSubview($0) })
@@ -162,7 +162,7 @@ class LoginViewController: UIViewController {
         })
         
         self.appleLoginView.snp.makeConstraints({
-            $0.bottom.equalTo(guestLoginBtn.snp.top).offset(-16)
+            $0.bottom.equalTo(view.safeAreaLayoutGuide).offset(-20)
             $0.leading.trailing.equalToSuperview().inset(20)
             $0.height.equalTo(56)
         })
@@ -175,11 +175,11 @@ class LoginViewController: UIViewController {
             $0.height.width.equalTo(20)
         })
         
-        self.guestLoginBtn.snp.makeConstraints({
-            $0.bottom.equalTo(view.safeAreaLayoutGuide).offset(-20)
-            $0.leading.trailing.equalToSuperview().inset(20)
-            $0.height.equalTo(48)
-        })
+//        self.guestLoginBtn.snp.makeConstraints({
+//            $0.bottom.equalTo(view.safeAreaLayoutGuide).offset(-20)
+//            $0.leading.trailing.equalToSuperview().inset(20)
+//            $0.height.equalTo(48)
+//        })
     }
 
     @objc func tapGoogleLoginBtn(_ sender: UIButton) {
