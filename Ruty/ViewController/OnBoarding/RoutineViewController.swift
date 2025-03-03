@@ -234,7 +234,8 @@ class RoutineViewController: UIViewController {
         let secondVC = GoalSettingViewController()
         secondVC.modalPresentationStyle = .fullScreen
         
-        secondVC.routineViewController = self
+        secondVC.isRecommendedData = true
+        secondVC.preViewController = self
         secondVC.id = id
         secondVC.routineDescription = description
         secondVC.category = category
@@ -309,11 +310,10 @@ class RoutineViewController: UIViewController {
         self.categoryCollectionView.snp.makeConstraints {
             $0.top.equalTo(descriptionLabel2.snp.bottom).offset(25)
             $0.left.right.equalToSuperview().inset(20)
-            $0.height.equalTo(38) // 적절한 높이 설정
+            $0.height.equalTo(38)
         }
         
         self.tableView.snp.makeConstraints {
-            //$0.top.equalTo(categoryCollectionView.snp.bottom).offset(25)
             $0.top.equalToSuperview().offset(213)
             $0.bottom.left.right.equalToSuperview()
         }

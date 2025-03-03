@@ -14,6 +14,9 @@ import AuthenticationServices
 
 class LoginViewController: UIViewController {
     
+    var isRecommendDataExist : Bool?
+    var isRoutineDataExist : Bool?
+    
     private let RutyIcon = UIImageView().then {
         $0.backgroundColor = .clear
         $0.image = UIImage(named: "Ruty-img")
@@ -76,10 +79,22 @@ class LoginViewController: UIViewController {
         $0.image = UIImage(named: "Logo-Apple")
     }
     
-//    private let appleLoginBtn = ASAuthorizationAppleIDButton(authorizationButtonType: .continue, authorizationButtonStyle: .white).then {
-//        $0.cornerRadius = 10
-//        $0.addTarget(self, action: #selector(tapAppleLoginBtn), for: .touchUpInside)
-//    }
+    private let guestLoginLabel = UILabel().then {
+        $0.text = "게스트 모드로 로그인"
+        $0.textColor = .white
+        $0.textAlignment = .center
+        $0.font = UIFont(name: Font.semiBold.rawValue, size: 16)
+        $0.numberOfLines = 1
+        $0.isUserInteractionEnabled = true
+    }
+    
+    private let guestLoginBtn = UIButton().then {
+        $0.setTitle("게스트로 이용해보기", for: .normal)
+        $0.backgroundColor = .clear
+        $0.setTitleColor(.white, for: .normal)
+        $0.titleLabel?.font = UIFont(name: Font.semiBold.rawValue, size: 16)
+        $0.addTarget(self, action: #selector(tapGuestLoginButn), for: .touchUpInside)
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -133,7 +148,7 @@ class LoginViewController: UIViewController {
         })
         
         self.googleLoginView.snp.makeConstraints({
-            $0.bottom.equalTo(appleLoginView.snp.top).offset(-20)
+            $0.bottom.equalTo(appleLoginView.snp.top).offset(-12)
             $0.leading.trailing.equalToSuperview().inset(20)
             $0.height.equalTo(56)
         })
@@ -159,6 +174,12 @@ class LoginViewController: UIViewController {
         self.appleLoginLabelLogo.snp.makeConstraints({
             $0.height.width.equalTo(20)
         })
+        
+//        self.guestLoginBtn.snp.makeConstraints({
+//            $0.bottom.equalTo(view.safeAreaLayoutGuide).offset(-20)
+//            $0.leading.trailing.equalToSuperview().inset(20)
+//            $0.height.equalTo(48)
+//        })
     }
 
     @objc func tapGoogleLoginBtn(_ sender: UIButton) {
@@ -205,6 +226,11 @@ class LoginViewController: UIViewController {
         }
     }
     
+    @objc func tapGuestLoginButn() {
+        DataManager.shared.isGuest = true // 게스트 모드 설정
+        self.moveToSignUp() // 회원가입 창으로 이동
+    }
+    
     @objc func tapAppleLoginBtn(_ sender: UIButton) {
         // SDK 로그인 방식
         let provider = ASAuthorizationAppleIDProvider()
@@ -220,21 +246,31 @@ class LoginViewController: UIViewController {
     }
     
     func loadMemberAgree() {
+        DataManager.shared.isGuest = false // 게스트 모드가 아닌 실제 로그인 로직
+        
         let url = NetworkManager.shared.getRequestURL(api: "/api/member/isAgree")
         NetworkManager.shared.requestAPI(url: url, method: .get, encoding: URLEncoding.default, param: nil) { result in
             switch result {
             case .success(let data):
                 do {
                     let decodedResponse = try JSONDecoder().decode(JSONModel.SignResponse.self, from: data)
+
                     // 회원가입이 필요함
                     if decodedResponse.data == nil {
                         self.moveToSignUp() // 회원가입 창으로 이동
                     }
                     
-                    // 회원가입 완료됨
+                    // 회원가입이 필요하지 않음
                     else {
-                        //self.moveToSignUp() // 디버깅용
-                        self.moveToMainView() // 메인화면으로 이동
+                        self.loadNickName()
+                        
+                        RoutineDataProvider.shared.isRecommendedEver { isExist in
+                            self.isRecommendDataExist = isExist
+                            if self.isRoutineDataExist != nil { self.controlToOnboardingOrMain() }
+                        } routineCompletion: { isExist in
+                            self.isRoutineDataExist = isExist
+                            if self.isRecommendDataExist != nil { self.controlToOnboardingOrMain() }
+                        }
                     }
                 } catch {
                     print("JSON 디코딩 오류: \(error)")
@@ -248,6 +284,41 @@ class LoginViewController: UIViewController {
         }
     }
       
+    func loadNickName() {
+        var url = NetworkManager.shared.getRequestURL(api: "/api/profile")
+        NetworkManager.shared.requestAPI(url: url, method: .get, encoding: URLEncoding.default, param: nil) { result in
+            switch result {
+            case .success(let data):
+                do {
+                    let decodedResponse = try JSONDecoder().decode(JSONModel.AppleUserInfoResponse.self, from: data)
+                    DataManager.shared.userNickName = decodedResponse.data.nickName
+                } catch {
+                    print("추천 JSON 디코딩 오류: \(error)")
+                }
+            case .failure(let error):
+                print("네트워크 api 요청 실패: \(error)")
+            }
+        }
+    }
+    
+    func controlToOnboardingOrMain() {
+        guard let isRecommendDataExist = isRecommendDataExist, let isRoutineDataExist = isRoutineDataExist else { return }
+        
+        // 추천받은 루틴이 없는 경우 (회원가입 한 후 추천받지 않고 바로 앱 종료 한 경우)
+        if !isRecommendDataExist && !isRoutineDataExist {
+            moveToOnBoarding()
+        }
+        else {
+            moveToMainView() // 메인화면으로 이동
+        }
+    }
+    
+    func moveToOnBoarding() {
+        let secondVC = OnBoardingMainViewController()
+        secondVC.modalPresentationStyle = .fullScreen
+        self.present(secondVC, animated: true)
+    }
+    
     func moveToSignUp() {
         let secondVC = SignUpAgreeViewController()
         secondVC.modalPresentationStyle = .fullScreen

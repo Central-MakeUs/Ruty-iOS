@@ -202,12 +202,20 @@ class OnBoardingMainViewController: UIViewController {
         }
         // 1~3 개인 경우 통과
         else {
-            // GPT Prompt 전달
-            RoutineDataProvider.shared.setGPTParam(prompt: getGPTPrompt())
-            
-            let secondVC = LoadingViewController()
-            secondVC.modalPresentationStyle = .fullScreen
-            navigationController?.pushViewController(secondVC, animated: true)
+            guard let isGuest = DataManager.shared.isGuest else { return }
+            if isGuest {
+                let popUpVC = PopUpViewController()
+                popUpVC.modalPresentationStyle = .overFullScreen
+                self.present(popUpVC, animated: true, completion: nil)
+            }
+            else {
+                // GPT Prompt 전달
+                RoutineDataProvider.shared.setGPTParam(prompt: getGPTPrompt())
+                
+                let secondVC = LoadingViewController()
+                secondVC.modalPresentationStyle = .fullScreen
+                self.present(secondVC, animated: true)
+            }
         }
     }
     
