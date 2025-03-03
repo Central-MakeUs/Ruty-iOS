@@ -51,6 +51,12 @@ class SignUpWriteNameViewController: UIViewController {
     
     let textField = UITextField().then {
         $0.placeholder = "닉네임을 입력해 주세요"
+        $0.attributedPlaceholder = NSAttributedString(
+            string: "닉네임을 입력해 주세요",
+            attributes: [.foregroundColor: UIColor(156, 163, 175, 1)] // 원하는 색상 적용
+        )
+        
+        $0.textColor = .black
         //$0.borderStyle = .roundedRect
         $0.backgroundColor = UIColor(243, 244, 246, 1)
         $0.layer.cornerRadius = 16
@@ -255,7 +261,8 @@ class SignUpWriteNameViewController: UIViewController {
             print("첫 입력으로 공백은 불가, 다음페이지로 이동 불가")
         }
         else if isNickNameCheckd == 2 || isNickNameCheckd == 3 {
-            requestSignUp()
+            if DataManager.shared.isGuest! { moveToNextPage() }
+            else { requestSignUp() }
         }
         else {
             print("다음페이지로 이동 불가")

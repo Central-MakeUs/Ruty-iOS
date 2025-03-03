@@ -13,4 +13,5 @@ class DataManager {
     
     var userNickName : String?
     var socialType: String?
+    var isGuest: Bool?
 }

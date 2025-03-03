@@ -9,6 +9,14 @@ import Foundation
 
 class JSONModel {
     
+    struct CustomGoalSetting: Encodable {
+        let title: String
+        let description: String
+        let weekList: [String]
+        let category : String
+        let month: Int
+    }
+    
     struct GoogleLogin: Encodable {
         let platformType: String
         let code: String
@@ -125,6 +133,33 @@ class JSONModel {
     }
 
     struct AppleUserInfo: Codable {
+        let memberId: Int
+        let email: String
+        let nickName: String
+        let name: String?
+        let picture: String?
+        let isAgree: Bool
+        let socialType: String
+        let refreshToken: String
+    }
+    
+    struct AppleAllRoutineResponse: Codable {
+        let message: String
+        let data: [AppleAllRoutine]
+    }
+
+    struct AppleAllRoutine: Codable {
+        let routineId: Int
+        let title: String
+        let description: String
+        let weekList: [String]
+        let startDate: String
+        let endDate: String
+        let category: String
+        let memberInfoDto: AppleMemberInfoDto
+    }
+
+    struct AppleMemberInfoDto: Codable {
         let memberId: Int
         let email: String
         let nickName: String

@@ -93,6 +93,47 @@ class RoutineDataProvider {
         }
     }
     
+    
+    
+    func isRecommendedEver(recommendCompletion: @escaping (Bool) -> (), routineCompletion: @escaping (Bool) -> ()) {
+        
+        
+        var url = NetworkManager.shared.getRequestURL(api: "/api/recommend/my")
+        NetworkManager.shared.requestAPI(url: url, method: .get, encoding: URLEncoding.default, param: nil) { result in
+            switch result {
+            case .success(let data):
+                do {
+                    let decodedResponse = try JSONDecoder().decode(JSONModel.RecommendedRoutinesResponse.self, from: data)
+                    self.rawRoutinesData = decodedResponse
+                    
+                    recommendCompletion(!self.rawRoutinesData.data.isEmpty)
+                } catch {
+                    print("추천 JSON 디코딩 오류: \(error)")
+                }
+            case .failure(let error):
+                print("네트워크 api 요청 실패: \(error)")
+            }
+        }
+        
+        url = NetworkManager.shared.getRequestURL(api: "/api/routine")
+        NetworkManager.shared.requestAPI(url: url, method: .get, encoding: URLEncoding.default, param: nil) { result in
+            switch result {
+            case .success(let data):
+                do {
+                    let decodedResponse = try JSONDecoder().decode(JSONModel.AppleAllRoutineResponse.self, from: data)
+    
+                    routineCompletion(!decodedResponse.data.isEmpty)
+
+                } catch {
+                    print("루틴 JSON 디코딩 오류: \(error)")
+                }
+            case .failure(let error):
+                // 요청이 실패한 경우
+                print("API 요청 실패: \(error.localizedDescription)")
+            }
+        }
+    }
+    
     // 카테고리 별로 루틴 데이터 분리
     private func devideRoutines() {
         // routinesData 초기화

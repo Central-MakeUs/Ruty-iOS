@@ -25,3 +25,17 @@ let categoryIndex: [String: Int] = [
     "LEISURE": 2,
     "SELFCARE": 3
 ]
+
+let categoryUIString: [String: String] = [
+    "HOUSE": "주거",
+    "MONEY": "소비",
+    "LEISURE": "여가생활",
+    "SELFCARE": "자기관리"
+]
+
+let categoryServerString: [String: String] = [
+    "주거": "HOUSE",
+    "소비": "MONEY",
+    "여가생활": "LEISURE",
+    "자기관리": "SELFCARE"
+]
