@@ -98,14 +98,7 @@ class RoutineCellTableViewCell: UITableViewCell {
             $0.height.equalTo(fitedHeight + 128) // 추천 내용 길이에 따라 동적으로 변화
         }
     }
-    
-    func updateCellBlockHeight(row: Int) {
-        let newHeight = row * 100
-        cellBlock.snp.updateConstraints {
-            $0.height.equalTo(newHeight + 128) // 추천 내용 길이에 따라 동적으로 변화
-        }
-    }
-    
+ 
     func addTarget() {
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(postNotification))
         addRoutineBtnView.addGestureRecognizer(tapGesture)

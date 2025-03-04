@@ -20,6 +20,7 @@ extension UIColor {
     
     struct background {
         static let secondary = UIColor(243, 244, 246, 1)
+        static let tertiary = UIColor(249, 250, 251, 1)
     }
     
     struct font {
@@ -27,6 +28,9 @@ extension UIColor {
         static let secondary = UIColor(107, 114, 128, 1)
         static let tertiary = UIColor(156, 163, 175, 1)
         static let disabled = UIColor(156, 163, 175, 1)
+        static let success = UIColor(13, 148, 136, 1)
+        static let warning = UIColor(234, 88, 12, 1)
+        static let brandStrong = UIColor(67, 56, 202, 1)
     }
     
     struct fill {
@@ -34,5 +38,12 @@ extension UIColor {
         static let secondary = UIColor(243, 244, 246, 1)
         static let primary = UIColor(31, 41, 55, 1)
         static let disabled = UIColor(229, 231, 235, 1)
+        static let success = UIColor(204, 251, 241, 1)
+        static let warning = UIColor(255, 237, 213, 1)
+        static let brandTertiary = UIColor(224, 231, 255, 1)
+    }
+    
+    struct border {
+        static let secondary = UIColor(209, 213, 219, 1)
     }
 }
