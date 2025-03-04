@@ -120,7 +120,7 @@ class RoutineDataProvider {
             switch result {
             case .success(let data):
                 do {
-                    let decodedResponse = try JSONDecoder().decode(JSONModel.AppleAllRoutineResponse.self, from: data)
+                    let decodedResponse = try JSONDecoder().decode(JSONModel.AllRoutineResponse.self, from: data)
     
                     routineCompletion(!decodedResponse.data.isEmpty)
 
@@ -135,7 +135,7 @@ class RoutineDataProvider {
     }
     
     // 카테고리 별로 루틴 데이터 분리
-    private func devideRoutines() {
+    func devideRoutines() {
         // routinesData 초기화
         routinesData = [[JSONModel.RecommendedRoutine]](repeating: [JSONModel.RecommendedRoutine](), count: 4)
         

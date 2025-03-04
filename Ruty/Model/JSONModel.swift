@@ -143,12 +143,12 @@ class JSONModel {
         let refreshToken: String
     }
     
-    struct AppleAllRoutineResponse: Codable {
+    struct AllRoutineResponse: Codable {
         let message: String
-        let data: [AppleAllRoutine]
+        let data: [AllRoutine]
     }
 
-    struct AppleAllRoutine: Codable {
+    struct AllRoutine: Codable {
         let routineId: Int
         let title: String
         let description: String
@@ -156,10 +156,10 @@ class JSONModel {
         let startDate: String
         let endDate: String
         let category: String
-        let memberInfoDto: AppleMemberInfoDto
+        let memberInfoDto: MemberInfoDto
     }
 
-    struct AppleMemberInfoDto: Codable {
+    struct MemberInfoDto: Codable {
         let memberId: Int
         let email: String
         let nickName: String
