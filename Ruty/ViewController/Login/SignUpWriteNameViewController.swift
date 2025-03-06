@@ -274,10 +274,35 @@ class SignUpWriteNameViewController: UIViewController {
     }
     
     func moveToNextPage() {
-        let secondVC = OnBoardingMainViewController()
-        secondVC.modalPresentationStyle = .fullScreen
+        let url = NetworkManager.shared.getRequestURL(api: "/api/goal")
+        NetworkManager.shared.requestAPI(url: url, method: .get, encoding: URLEncoding.default, param: nil) { result in
+            
+            switch result {
+            case .success(let data):
+                do {
+                    let decodedResponse = try JSONDecoder().decode(JSONModel.AllGoal.self, from: data)
+                    if decodedResponse.message == "ok" {
+                        let secondVC = OnBoardingMainViewController()
+                        secondVC.goalData = decodedResponse
+                        secondVC.modalPresentationStyle = .fullScreen
+                        self.navigationController?.pushViewController(secondVC, animated: true)
+                    }
+                    else {
+                        print("서버 연결 오류")
+                        ErrorViewController.showErrorPage(viewController: self)
+                    }
+                } catch {
+                    print("JSON 디코딩 오류: \(error)")
+                    ErrorViewController.showErrorPage(viewController: self)
+                }
+            case .failure(let error):
+                // 요청이 실패한 경우
+                print("API 요청 실패: \(error.localizedDescription)")
+                ErrorViewController.showErrorPage(viewController: self)
+            }
+        }
         
-        navigationController?.pushViewController(secondVC, animated: true)
+       
     }
     
     func setTextField() {
