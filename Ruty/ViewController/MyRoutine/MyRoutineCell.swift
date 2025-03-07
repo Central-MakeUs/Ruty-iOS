@@ -13,9 +13,7 @@ class MyRoutineCell: UITableViewCell {
     var preViewController : UIViewController?
     
     static let identifier = "MyRoutineCell"
-    
     private var id: Int?
-    
     private var category: String?
     
     private var historyData: JSONModel.RoutineHistoryResponses?
@@ -50,8 +48,8 @@ class MyRoutineCell: UITableViewCell {
     private let dayStack = UIStackView().then {
         $0.axis = .horizontal
         $0.spacing = 12
-        $0.alignment = .leading
-        $0.distribution = .equalCentering
+        $0.alignment = .center
+        $0.distribution = .fill
     }
     
     private let dayLabel = UILabel().then {
@@ -67,7 +65,7 @@ class MyRoutineCell: UITableViewCell {
         $0.font = UIFont(name: Font.medium.rawValue, size: 14)
         $0.textColor = UIColor.font.tertiary
         $0.backgroundColor = .clear
-        $0.numberOfLines = 0
+        $0.numberOfLines = 1
     }
     
     private let dateBar = UIView().then {
@@ -110,13 +108,23 @@ class MyRoutineCell: UITableViewCell {
         cellBlock.snp.makeConstraints {
             $0.left.right.bottom.equalToSuperview().inset(20)
             $0.top.equalToSuperview()
-            //$0.height.equalTo(200)
         }
         
         routineStatusBlock.snp.makeConstraints {
             $0.top.left.equalToSuperview().inset(20)
             $0.height.equalTo(30)
-            $0.width.equalTo(45)
+        }
+        
+        if routineLabel.text != "-" {
+            let size = routineStatusLabel.sizeThatFits(CGSize(width: CGFloat.greatestFiniteMagnitude, height: 40))
+            routineStatusBlock.snp.makeConstraints {
+                $0.width.equalTo(24 + size.width)
+            }
+        }
+        else {
+            routineStatusBlock.snp.makeConstraints {
+                $0.width.equalTo(32)
+            }
         }
         
         routineStatusLabel.snp.makeConstraints {
@@ -138,6 +146,7 @@ class MyRoutineCell: UITableViewCell {
         dayStack.snp.makeConstraints {
             $0.left.equalToSuperview().inset(20)
             $0.top.equalTo(routineLabel.snp.bottom).offset(8)
+            $0.width.lessThanOrEqualToSuperview().inset(20)
         }
         
         dateBar.snp.makeConstraints {
@@ -156,15 +165,41 @@ class MyRoutineCell: UITableViewCell {
         self.category = category
         self.routineLabel.text = routineName
         self.markImage.image = UIImage(named: markImage)
-        self.routineStatusLabel.text = routineStatusText
         self.dayLabel.text = dayText
         self.dateLabel.text = dateText
+
+        updateStatusBar(routineStatusText: routineStatusText)
+    }
+    
+    func updateStatusBar(routineStatusText: String) {
+        switch routineStatusText {
+        case "ONGOING":
+            routineStatusBlock.backgroundColor = UIColor.fill.brandTertiary
+            routineStatusLabel.textColor = UIColor.font.brandStrong
+            routineStatusLabel.text = "진행 중"
+        case "GIVE_UP":
+            self.routineStatusBlock.backgroundColor = UIColor.fill.warning
+            self.routineStatusLabel.textColor = UIColor.font.warning
+            self.routineStatusLabel.text = "중도포기"
+        default: // 완료한 루틴
+            routineStatusBlock.backgroundColor = UIColor.fill.success
+            routineStatusLabel.textColor = UIColor.font.success
+            routineStatusLabel.text = "완료"
+        }
+        self.setStatusBarSize()
+    }
+    
+    func setStatusBarSize() {
+        let size = routineStatusLabel.sizeThatFits(CGSize(width: CGFloat.greatestFiniteMagnitude, height: 40))
+        
+        DispatchQueue.main.async {
+            self.routineStatusBlock.snp.updateConstraints {
+                $0.width.equalTo(24 + size.width)
+            }
+        }
     }
 
     @objc func tapShowRoutineInfoBtn() {
-        let nextVC = RoutineInfoViewController()
-        nextVC.modalPresentationStyle = .fullScreen
-        preViewController?.navigationController?.pushViewController(nextVC, animated: true)
         var isRoutineHistory = false
         var isRoutineProcess = false
         
