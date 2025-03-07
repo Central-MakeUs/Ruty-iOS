@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import Alamofire
 
 class MyRoutineCell: UITableViewCell {
 
@@ -17,6 +18,9 @@ class MyRoutineCell: UITableViewCell {
     
     private var category: String?
     
+    private var historyData: JSONModel.RoutineHistoryResponses?
+    private var progressData: JSONModel.RoutineProgressResponses?
+
     private let cellBlock = UIView().then {
         $0.backgroundColor = UIColor.background.tertiary
         $0.layer.cornerRadius = 20
@@ -161,5 +165,125 @@ class MyRoutineCell: UITableViewCell {
         let nextVC = RoutineInfoViewController()
         nextVC.modalPresentationStyle = .fullScreen
         preViewController?.navigationController?.pushViewController(nextVC, animated: true)
+        var isRoutineHistory = false
+        var isRoutineProcess = false
+        
+        var isExecutedHistory = false
+        var isExecutedProcess = false
+        
+        requestLoadRoutineHistory { isBool in
+            isRoutineHistory = isBool
+            isExecutedHistory = true
+            if isExecutedHistory && isExecutedProcess {
+                self.moveToRoutineInfoView(isRoutineHistory: isRoutineHistory, isRoutineProcess: isRoutineProcess)
+            }
+            
+        }
+        requestRoutineProcess { isBool in
+            isRoutineProcess = isBool
+            isExecutedProcess = true
+            if isExecutedHistory && isExecutedProcess {
+                self.moveToRoutineInfoView(isRoutineHistory: isRoutineHistory, isRoutineProcess: isRoutineProcess)
+            }
+        }
+    }
+
+    func moveToRoutineInfoView(isRoutineHistory: Bool, isRoutineProcess: Bool) {
+        
+        if isRoutineHistory && isRoutineProcess {
+            let nextVC = RoutineInfoViewController()
+            nextVC.preViewController = preViewController
+            nextVC.routineStatus = routineStatusLabel.text
+            nextVC.routineID = id
+            nextVC.routineName = routineLabel.text
+            nextVC.dayString = dayLabel.text
+            nextVC.dateString = dateLabel.text
+            nextVC.category = category
+            nextVC.historyData = historyData
+            nextVC.progressData = progressData
+            nextVC.modalPresentationStyle = .fullScreen
+            self.preViewController?.navigationController?.pushViewController(nextVC, animated: true)
+        }
+        else {
+            ErrorViewController.showErrorPage(viewController: self.preViewController!)
+        }
+    }
+    
+    func requestLoadRoutineHistory(onColpleted: @escaping (Bool) -> ()) {
+        guard let id = id else { return }
+        print("id: \(id)")
+        let url = NetworkManager.shared.getRequestURL(api: "/api/routine/history/\(id)")
+//        let param = JSONModel.RoutineHistory(routineId: id, year: 2025, month: 3) // 달력 임시 값
+//        
+//        guard let jsonData = try? JSONEncoder().encode(param),
+//              let param = try? JSONSerialization.jsonObject(with: jsonData) as? [String: Any] else { return }
+//
+        
+        let today = Date()
+        let calendar = Calendar.current
+
+        let year = calendar.component(.year, from: today)
+        let month = calendar.component(.month, from: today)
+
+        let parameters: [String: Any] = [
+            "year": year,
+            "month": month
+        ]
+        
+        NetworkManager.shared.requestAPI(url: url, method: .get, encoding: URLEncoding.default, param: parameters) { result in
+            
+            switch result {
+            case .success(let data):
+                do {
+                    let decodedResponse = try JSONDecoder().decode(JSONModel.RoutineHistoryResponses.self, from: data)
+                    if decodedResponse.message == "ok" {
+                        print("decodedResponse: \(decodedResponse)")
+                        self.historyData = decodedResponse
+                        onColpleted(true)
+                    }
+                    else {
+                        print("서버 연결 오류")
+                        onColpleted(false)
+                    }
+                } catch {
+                    print("JSON 디코딩 오류: \(error)")
+                    onColpleted(false)
+                }
+            case .failure(let error):
+                // 요청이 실패한 경우
+                print("API 요청 실패: \(error.localizedDescription)")
+                onColpleted(false)
+            }
+        }
+    }
+    
+    func requestRoutineProcess(onColpleted: @escaping (Bool) -> ()) {
+        guard let id = id else { return }
+        print("id: \(id)")
+        let url = NetworkManager.shared.getRequestURL(api: "/api/routine/history/\(id)/count")
+        NetworkManager.shared.requestAPI(url: url, method: .get, encoding: URLEncoding.default, param: nil) { result in
+            
+            switch result {
+            case .success(let data):
+                do {
+                    let decodedResponse = try JSONDecoder().decode(JSONModel.RoutineProgressResponses.self, from: data)
+                    if decodedResponse.message == "ok" {
+                        self.progressData = decodedResponse
+                        onColpleted(true)
+                    }
+                    else {
+                        print("서버 연결 오류")
+                        onColpleted(false)
+                    }
+                } catch {
+                    print("JSON 디코딩 오류: \(error)")
+                    onColpleted(false)
+                }
+            case .failure(let error):
+                // 요청이 실패한 경우
+                print("process API 요청 실패: \(error.localizedDescription)")
+                onColpleted(false)
+            }
+        }
     }
 }

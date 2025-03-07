@@ -9,6 +9,27 @@ import Foundation
 
 class JSONModel {
     
+    struct RoutineProgressResponses: Codable {
+        let message: String
+        let data: RoutineProgressResponse
+    }
+
+    struct RoutineProgressResponse: Codable {
+        let totalCount: Int
+        let completedCount: Int
+        let streakCount: Int
+    }
+    
+    struct RoutineHistoryResponses: Codable {
+        let message: String
+        let data: [RoutineHistoryResponse]
+    }
+
+    struct RoutineHistoryResponse: Codable {
+        let date: String
+        let isDone: Bool
+    }
+    
     struct AllGoal: Codable {
         let message: String
         let data: [Goal]

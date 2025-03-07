@@ -6,9 +6,14 @@
 //
 
 import UIKit
+import Alamofire
 
 class MyRoutineViewController: UIViewController {
 
+    // 사용자의 모든 루틴 데이터
+    private var rawAllRoutinesData = JSONModel.AllRoutineResponse(message: "", data: [])
+    private var sortedAllRoutinesData = [[JSONModel.AllRoutine]](repeating: [JSONModel.AllRoutine](), count: 4)
+    
     private let contentScrollView = UIScrollView().then {
         $0.backgroundColor = .white
         $0.showsVerticalScrollIndicator = false
@@ -48,7 +53,7 @@ class MyRoutineViewController: UIViewController {
     }
     
     private let tableView = UITableView().then {
-        $0.backgroundColor = .red
+        $0.backgroundColor = .white
         $0.separatorStyle = .singleLine
         $0.isScrollEnabled = false
     }
@@ -86,25 +91,51 @@ class MyRoutineViewController: UIViewController {
         checkFirstCategory()
         
         checkRoutineEmpty()
-        
-        print("allRoutinesData: \(allRoutinesData)")
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-            
-        tableView.reloadData()
         
         // 스와이프 뒤로 가기 제스처 다시 활성화
         navigationController?.interactivePopGestureRecognizer?.delegate = self
         navigationController?.interactivePopGestureRecognizer?.isEnabled = true
+        
+        updateData()
     }
     
     override func viewDidLayoutSubviews() {
-        //super.viewDidLayoutSubviews()
         self.updateContentViewHeight()
     }
     
+    // MARK: - API 요청
+    
+    func updateData() {
+        let url = NetworkManager.shared.getRequestURL(api: "/api/routine")
+        NetworkManager.shared.requestAPI(url: url, method: .get, encoding: URLEncoding.default, param: nil) { result in
+            switch result {
+            case .success(let data):
+                do {
+                    let decodedResponse = try JSONDecoder().decode(JSONModel.AllRoutineResponse.self, from: data)
+                    if decodedResponse.message == "ok" {
+                        self.rawAllRoutinesData = decodedResponse
+                        self.sortMyRoutineData()
+                    }
+                    else {
+                        print("서버 연결 오류")
+                        ErrorViewController.showErrorPage(viewController: self)
+                    }
+                } catch {
+                    print("루틴 JSON 디코딩 오류: \(error)")
+                    ErrorViewController.showErrorPage(viewController: self)
+                }
+            case .failure(let error):
+                // 요청이 실패한 경우
+                print("API 요청 실패: \(error.localizedDescription)")
+                ErrorViewController.showErrorPage(viewController: self)
+            }
+        }
+    }
+
     // MARK: - get, set
     func setAllRoutinesData(data: [[JSONModel.AllRoutine]]) {
         allRoutinesData = data
@@ -118,7 +149,7 @@ class MyRoutineViewController: UIViewController {
         tableView.register(MyRoutineCell.self, forCellReuseIdentifier: MyRoutineCell.identifier)
     }
     
-    // 모든 루틴을 추가해서 추가할 루틴이 없을 경우 헬퍼 텍스트 표기
+    // 루틴을 전혀 추가하지 않아서 표기할 루틴이 없을 때 헬퍼 텍스트 표기
     func checkRoutineEmpty() {
         let routines = allRoutinesData.flatMap { $0 }
         if routines.isEmpty {
@@ -128,6 +159,24 @@ class MyRoutineViewController: UIViewController {
             }
         }
     }
+    
+    private func sortMyRoutineData() {
+        // sortedTodayRoutineData 초기화
+        sortedAllRoutinesData = [[JSONModel.AllRoutine]](repeating: [JSONModel.AllRoutine](), count: 4)
+        
+        for item in rawAllRoutinesData.data {
+            switch item.category {
+            case "HOUSE" : sortedAllRoutinesData[0].append(item)
+            case "MONEY" : sortedAllRoutinesData[1].append(item)
+            case "LEISURE" : sortedAllRoutinesData[2].append(item)
+            case "SELFCARE" : sortedAllRoutinesData[3].append(item)
+            default: break
+            }
+        }
+        allRoutinesData = sortedAllRoutinesData
+        self.tableView.reloadData()
+    }
+    
     
     // MARK: - collectionView
     private func setupCollectionView() {
@@ -157,16 +206,16 @@ class MyRoutineViewController: UIViewController {
             switch appearCategory[0] {
             case "주거" :
                 selectedCategoryIndex = 0
-                return
+                break
             case "소비" :
                 selectedCategoryIndex = 1
-                return
+                break
             case "여가생활" :
                 selectedCategoryIndex = 2
-                return
-            case "자가관리" :
+                break
+            case "자기관리" :
                 selectedCategoryIndex = 3
-                return
+                break
             default: break
             }
             
@@ -180,16 +229,25 @@ class MyRoutineViewController: UIViewController {
     
     // tableView의 콘텐츠 높이에 따라 contentView의 높이를 동적으로 조정
     func updateContentViewHeight() {
+        
         self.view.layoutIfNeeded() // 레이아웃 강제 업데이트
         tableView.sizeToFit()
         let tableViewHeight = tableView.contentSize.height
-        let contentHeight = tableViewHeight
+        var contentHeight = tableViewHeight
                             + 250 // 기타 고정된 간격
         // 스크롤뷰의 콘텐츠 크기 업데이트
         contentScrollView.contentSize = CGSize(width: contentScrollView.frame.width, height: contentHeight)
         
-        contentView.snp.updateConstraints {
-            $0.height.equalTo(contentHeight)
+        // 스크롤뷰 콘텐츠 최소 길이를 기기 화면 크기로 지정
+        let screenHeight = view.safeAreaLayoutGuide.layoutFrame.height
+        if contentHeight < screenHeight {
+            contentHeight = screenHeight
+        }
+        
+        DispatchQueue.main.async {
+            self.contentView.snp.updateConstraints {
+                $0.height.equalTo(contentHeight)
+            }
         }
     }
     
@@ -243,6 +301,56 @@ class MyRoutineViewController: UIViewController {
     @objc func moveToBackPage() {
         navigationController?.popViewController(animated: true)
     }
+    
+    // MARK: - 데이터 변환
+    func convertDays(_ days: [String]) -> String {
+        // 요일의 순서와 한글 매핑
+        let dayOrder: [String: Int] = [
+            "MON": 1, "TUE": 2, "WED": 3, "THU": 4, "FRI": 5, "SAT": 6, "SUN": 7
+        ]
+        let dayKorean: [String: String] = [
+            "MON": "월", "TUE": "화", "WED": "수", "THU": "목", "FRI": "금", "SAT": "토", "SUN": "일"
+        ]
+        
+        // 배열이 비어있으면 빈 문자열 반환
+        guard !days.isEmpty else { return "" }
+        
+        // 요일 코드를 순서대로 정렬
+        let sortedDays = days.sorted {
+            (dayOrder[$0] ?? 0) < (dayOrder[$1] ?? 0)
+        }
+        
+        // 정렬된 요일들을 한글로 변환
+        let sortedKoreanDays = sortedDays.compactMap { dayKorean[$0] }
+        
+        // 배열에 하나의 요소만 있으면 그대로 반환
+        guard sortedKoreanDays.count > 1 else {
+            return sortedKoreanDays.first ?? ""
+        }
+        
+        // 정렬된 요일들이 연속적인지 검사
+        var isContinuous = true
+        for i in 1..<sortedDays.count {
+            // 만약 인덱스 차이가 1이 아니라면 연속이 아님
+            if let prev = dayOrder[sortedDays[i-1]], let current = dayOrder[sortedDays[i]] {
+                if current - prev != 1 {
+                    isContinuous = false
+                    break
+                }
+            } else {
+                isContinuous = false
+                break
+            }
+        }
+        
+        // 연속적인 경우: 첫번째와 마지막을 '-'로 연결 (예: "월-금")
+        if isContinuous {
+            return "\(sortedKoreanDays.first!)-\(sortedKoreanDays.last!)"
+        } else {
+            // 그렇지 않으면 콤마로 연결 (예: "수,금")
+            return sortedKoreanDays.joined(separator: ",")
+        }
+    }
 }
 
 extension MyRoutineViewController : UITableViewDelegate, UITableViewDataSource {
@@ -257,8 +365,14 @@ extension MyRoutineViewController : UITableViewDelegate, UITableViewDataSource {
         }
         let item = allRoutinesData[selectedCategoryIndex][indexPath.row]
         
+        let startDate = item.startDate.replacingOccurrences(of: "-", with: ".")
+        let endDate = item.endDate.replacingOccurrences(of: "-", with: ".")
+        let dateText = "\(startDate) - \(endDate)"
+        
+        let dayText = convertDays(item.weekList)
+        
         cell.preViewController = self
-        cell.setContent(id: item.routineId, category: item.category, routineName: item.title, markImage: RoutineCategoryImage.shared[item.category] ?? "housing", routineStatusText: "test", dayText: "test", dateText: "test")
+        cell.setContent(id: item.routineId, category: item.category, routineName: item.title, markImage: RoutineCategoryImage.shared[item.category] ?? "housing", routineStatusText: item.routineProgress, dayText: dayText, dateText: dateText)
         cell.setupLayout()
 
         // cell 클릭시 보이게 되는 회색 배경색 제거

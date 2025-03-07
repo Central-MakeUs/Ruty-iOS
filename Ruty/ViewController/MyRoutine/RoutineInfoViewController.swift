@@ -7,9 +7,22 @@
 
 import UIKit
 import FSCalendar
+import Alamofire
 
 class RoutineInfoViewController: UIViewController {
 
+    var preViewController: UIViewController?
+    
+    var routineStatus: String?
+    var routineID: Int?
+    var routineName: String?
+    var dayString: String?
+    var dateString: String?
+    var category: String?
+    
+    var historyData: JSONModel.RoutineHistoryResponses?
+    var progressData: JSONModel.RoutineProgressResponses?
+    
     private let topBackgroundView = UIView().then {
         $0.backgroundColor = UIColor.background.secondary
     }
@@ -58,7 +71,7 @@ class RoutineInfoViewController: UIViewController {
         $0.axis = .horizontal
         $0.spacing = 12
         $0.alignment = .center
-        $0.distribution = .equalCentering
+        $0.distribution = .equalSpacing
     }
     
     private let dayLabel = UILabel().then {
@@ -67,7 +80,7 @@ class RoutineInfoViewController: UIViewController {
         $0.font = UIFont(name: Font.semiBold.rawValue, size: 12)
         $0.textColor = UIColor.font.secondary
         $0.backgroundColor = .clear
-        $0.numberOfLines = 0
+        $0.numberOfLines = 1
     }
     
     private let dateLabel = UILabel().then {
@@ -76,7 +89,7 @@ class RoutineInfoViewController: UIViewController {
         $0.font = UIFont(name: Font.semiBold.rawValue, size: 12)
         $0.textColor = UIColor.font.secondary
         $0.backgroundColor = .clear
-        $0.numberOfLines = 0
+        $0.numberOfLines = 1
     }
     
     private let processRateBlock = UIView().then {
@@ -164,22 +177,29 @@ class RoutineInfoViewController: UIViewController {
         $0.backgroundColor = .white
     }
     
-    let completeBtn = UIButton().then {
+    let discardBtn = UIButton().then {
         $0.backgroundColor = UIColor(31, 41, 55, 1)
         $0.layer.cornerRadius = 16
         $0.setTitle("포기하기", for: .normal)
         $0.titleLabel?.font = UIFont(name: Font.semiBold.rawValue, size: 16)
         $0.setTitleColor(.white, for: .normal)
-        $0.addTarget(self, action: #selector(tapCompleteBtn), for: .touchUpInside)
+        $0.addTarget(self, action: #selector(tapDiscardBtn), for: .touchUpInside)
     }
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
         setCalendarView()
+        setData()
         setUI()
         setLayout()
         setProcessBar()
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        let percent = processPercent.text!.replacingOccurrences(of: "%", with: "")
+        
+        self.progressBarView.ratio = Double(Int(percent)!) / 100.0
     }
     
     override func viewDidLayoutSubviews() {
@@ -196,8 +216,59 @@ class RoutineInfoViewController: UIViewController {
             }
         }
     }
+    
+    // MARK: - API
+    func requestLoadRoutineHistory(year: Int, month: Int, onColpleted: @escaping (Bool) -> ()) {
+        guard let id = routineID else { return }
+        print("id: \(id)")
+        let url = NetworkManager.shared.getRequestURL(api: "/api/routine/history/\(id)")
+ 
+        // GET 요청이므로 URL에 query parameter 추가
+        let parameters: [String: Any] = [
+            "year": year,
+            "month": month
+        ]
+        
+        NetworkManager.shared.requestAPI(url: url, method: .get, encoding: URLEncoding.default, param: parameters) { result in
+            
+            switch result {
+            case .success(let data):
+                do {
+                    let decodedResponse = try JSONDecoder().decode(JSONModel.RoutineHistoryResponses.self, from: data)
+                    if decodedResponse.message == "ok" {
+                        print("decodedResponse: \(decodedResponse)")
+                        self.historyData = decodedResponse
+                        onColpleted(true)
+                    }
+                    else {
+                        print("서버 연결 오류")
+                        onColpleted(false)
+                    }
+                } catch {
+                    print("JSON 디코딩 오류: \(error)")
+                    onColpleted(false)
+                }
+            case .failure(let error):
+                // 요청이 실패한 경우
+                print("API 요청 실패: \(error.localizedDescription)")
+                onColpleted(false)
+            }
+        }
+    }
+    
 
     // MARK: - 캘린더
+    
+    func fetchCalendar(year: Int, month: Int) {
+        requestLoadRoutineHistory(year: year, month: month) { isLoad in
+            if isLoad {
+                DispatchQueue.main.async {
+                    self.calendarView.reloadData()
+                }
+            }
+        }
+    }
+    
     func setCalendarView() {
         calendarView.delegate = self
         calendarView.dataSource = self
@@ -237,6 +308,12 @@ class RoutineInfoViewController: UIViewController {
         currentPage = newPage
         calendarView.setCurrentPage(currentPage, animated: true)
         updateCalendarHeader()
+        
+        let calendar = Calendar.current
+        let year = calendar.component(.year, from: newPage)
+        let month = calendar.component(.month, from: newPage)
+        
+        fetchCalendar(year: year, month: month)
     }
     
     @objc func moveToNext(_ sender: Any) {
@@ -248,6 +325,12 @@ class RoutineInfoViewController: UIViewController {
         currentPage = newPage
         calendarView.setCurrentPage(currentPage, animated: true)
         updateCalendarHeader()
+        
+        let calendar = Calendar.current
+        let year = calendar.component(.year, from: newPage)
+        let month = calendar.component(.month, from: newPage)
+        
+        fetchCalendar(year: year, month: month)
     }
     
     private func updateCalendarHeader() {
@@ -277,8 +360,119 @@ class RoutineInfoViewController: UIViewController {
         }
     }
     
-    @objc func tapCompleteBtn() {
+    @objc func tapDiscardBtn() {
+        let popUpVC = PopUpViewController()
+        popUpVC.modalPresentationStyle = .overFullScreen
         
+        popUpVC.onCompleted = {
+            let url = NetworkManager.shared.getRequestURL(api: "/api/routine/\(self.routineID!)/progress")
+            NetworkManager.shared.requestAPI(url: url, method: .put, encoding: URLEncoding.default, param: nil) { result in
+                
+                switch result {
+                case .success(let data):
+                    do {
+                        let decodedResponse = try JSONDecoder().decode(JSONModel.APIResponse.self, from: data)
+                        if decodedResponse.message == "update" {
+                            // completion 지정
+                            CATransaction.begin()
+                            CATransaction.setCompletionBlock {
+                                self.navigationController?.popViewController(animated: true)
+                                // 이전 화면으로 돌아간 후에 toast message 보여줌
+                                showToast(view: self.preViewController!.view!, message: "루틴을 포기했어요", imageName: "Icon-Circle-Check", withDuration: 0.5, delay: 1.5)
+                            }
+                            CATransaction.commit()
+                        }
+                        else {
+                            print("서버 연결 오류")
+                            ErrorViewController.showErrorPage(viewController: self)
+                        }
+                    } catch {
+                        print("JSON 디코딩 오류: \(error)")
+                        ErrorViewController.showErrorPage(viewController: self)
+                    }
+                case .failure(let error):
+                    // 요청이 실패한 경우
+                    print("포기하기 API 요청 실패: \(error.localizedDescription)")
+                    ErrorViewController.showErrorPage(viewController: self)
+                }
+            }
+        }
+        
+        self.present(popUpVC, animated: true, completion: nil)
+    }
+    
+    func compareEarliestDateToToday() -> Int {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd"
+        // 고정된 형식을 위해 locale 설정
+        dateFormatter.locale = Locale(identifier: "en_US_POSIX")
+        
+        let dates = historyData!.data.compactMap { dateFormatter.date(from: $0.date) }
+        guard let earliestDate = dates.min() else {
+            // 날짜가 없으면 에러 처리 (여기서는 예시로 0을 반환)
+            return 0
+        }
+        
+        // 오늘 날짜의 시간 정보를 제거하고 비교하기 위해 startOfDay 사용
+        let calendar = Calendar.current
+        let todayStart = calendar.startOfDay(for: Date())
+        let earliestStart = calendar.startOfDay(for: earliestDate)
+        
+        print("earliestStart: \(earliestStart)")
+        print("todayStart: \(todayStart)")
+        
+        if earliestStart == todayStart {
+            // 가장 빠른 날짜가 오늘과 같으면 0
+            return 0
+        } else if earliestStart < todayStart {
+            // 가장 빠른 날짜가 오늘보다 과거이면 1
+            return 1
+        } else {
+            // 가장 빠른 날짜가 오늘보다 미래이면 2
+            return 2
+        }
+    }
+    
+    func setData() {
+        titleLabel.text = routineName
+        dayLabel.text = dayString
+        dateLabel.text = dateString
+        categoryMarkImage.image = UIImage(named: RoutineCategoryImage.shared[category ?? "HOUSE"] ?? "housing")
+        
+        guard let progressData = progressData else { return }
+        
+        if routineStatus == "진행 중" {
+            if progressData.data.streakCount == 0 {
+
+                let routineSet = compareEarliestDateToToday()
+                
+                if routineSet == 0 {
+                    processHelperLabel.text = "시작이 어려운 법! 루틴을 수행해보세요"
+                }
+                else if routineSet == 2 {
+                    processHelperLabel.text = "아직 루틴을 시작할 날이 되지 않았어요!"
+                }
+                else {
+                    processHelperLabel.text = "잠시 쉬는중.. 다시 시작해볼까요?"
+                    processMarkImage.image = UIImage(named: "Icon-Circle Exclamation")
+                }
+            }
+            else {
+                processHelperLabel.text = "연속 \(progressData.data.streakCount)회 수행 중!"
+            }
+        }
+        else {
+            processHelperLabel.text = "최대 연속 \(progressData.data.streakCount)회를 수행했어요!"
+        }
+
+        
+        if progressData.data.completedCount == 0 {
+            processPercent.text = "0%"
+        }
+        else {
+            let percent = Int(Double(progressData.data.completedCount) / Double(progressData.data.totalCount) * 100)
+            processPercent.text = "\(percent)%"
+        }
     }
     
     func setProcessBar() {
@@ -292,7 +486,7 @@ class RoutineInfoViewController: UIViewController {
     func setLayout() {
         [topBackgroundView, bottomBackgroundView, contentScrollView].forEach({ view.addSubview($0) })
         [contentView].forEach({ contentScrollView.addSubview($0) })
-        [backBtn, titleStack, dayStack, processRateBlock, calendarBackgroundView, calendarView, completeBtn].forEach({ contentView.addSubview($0) })
+        [backBtn, titleStack, dayStack, processRateBlock, calendarBackgroundView, calendarView].forEach({ contentView.addSubview($0) })
         
         [categoryMarkImage, titleLabel].forEach({ titleStack.addArrangedSubview($0) })
         [dayLabel, dateLabel].forEach({ dayStack.addArrangedSubview($0) })
@@ -407,14 +601,42 @@ class RoutineInfoViewController: UIViewController {
             $0.bottom.left.right.equalToSuperview()
         }
         
-        self.completeBtn.snp.makeConstraints {
-            $0.height.equalTo(56)
-            $0.bottom.left.right.equalToSuperview().inset(20)
+        if routineStatus == "진행 중" {
+            [discardBtn].forEach({ contentView.addSubview($0) })
+            
+            self.discardBtn.snp.makeConstraints {
+                $0.height.equalTo(56)
+                $0.bottom.left.right.equalToSuperview().inset(20)
+            }
         }
     }
     
     @objc func moveToBackPage() {
         navigationController?.popViewController(animated: true)
+    }
+    
+    func isFutureOrToday(day: Int) -> Bool {
+        // 오늘 날짜의 day 컴포넌트 추출
+        let today = Date()
+        let currentDay = Calendar.current.component(.day, from: today)
+        
+        // dayValue가 오늘 날짜보다 크거나 같으면 (오늘 포함 미래) true, 아니면 false
+        return day >= currentDay
+    }
+    
+    func isDayMatching(day: Int, fullDateString: String) -> Bool {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd"
+        dateFormatter.locale = Locale(identifier: "en_US_POSIX")
+
+        guard let fullDate = dateFormatter.date(from: fullDateString) else {
+            return false
+        }
+
+        let calendar = Calendar.current
+        let fullDateDay = calendar.component(.day, from: fullDate)
+
+        return day == fullDateDay
     }
 }
 
@@ -438,6 +660,26 @@ extension RoutineInfoViewController: FSCalendarDelegate, FSCalendarDataSource, F
         
         cell.resetOpacity()
         
+        guard let historyData = historyData else { return FSCalendarCell() }
+
+        for dateCell in historyData.data {
+            if isDayMatching(day: day, fullDateString: dateCell.date) && currentMonth == dateMonth {
+                // 루틴을 수행함
+                if dateCell.isDone {
+                    cell.setBackgroundColor(progress: 0)
+                }
+                // 루틴을 수행하지 않았으나 오늘~미래에 수행가능한 루틴
+                else if isFutureOrToday(day: day) {
+                    cell.setBackgroundColor(progress: 1)
+                }
+                // 루틴을 수행하지 않아 실패처리
+                else {
+                    print("실패")
+                    cell.setBackgroundColor(progress: 2)
+                }
+            }
+        }
+        
         // 이번달 cell 이 아닌 경우 opacity 처리
         if currentMonth != dateMonth {
             cell.setOpacity()
@@ -450,5 +692,11 @@ extension RoutineInfoViewController: FSCalendarDelegate, FSCalendarDataSource, F
         // 달력이 스크롤되어 현재 페이지(월)가 바뀔 때마다 currentPage와 monthLabel을 갱신
         currentPage = calendar.currentPage
         updateCalendarHeader()
+        
+        let calendar = Calendar.current
+        let year = calendar.component(.year, from: currentPage)
+        let month = calendar.component(.month, from: currentPage)
+        
+        fetchCalendar(year: year, month: month)
     }
 }

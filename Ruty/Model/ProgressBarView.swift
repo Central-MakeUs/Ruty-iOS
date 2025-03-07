@@ -18,8 +18,6 @@ final class ProgressBarView: UIView {
     
     var ratio: CGFloat = 0.0 {
         didSet {
-            self.isHidden = !self.ratio.isLess(than: 1.0)
-            
             self.progressBarView.snp.remakeConstraints {
                 $0.top.bottom.equalTo(self.safeAreaLayoutGuide)
                 $0.width.equalToSuperview().multipliedBy(self.ratio)

@@ -57,6 +57,26 @@ class CalendarCell: FSCalendarCell {
     override func prepareForReuse() {
         super.prepareForReuse()
         resetOpacity()
+        cellBlock.backgroundColor = .white
+        dateLabel.textColor = UIColor.font.primary
+    }
+    
+    // 0: 루틴을 수행함
+    // 1: 루틴을 수행하지 않았으나 오늘~미래에 수행가능한 루틴
+    // 2: 루틴을 수행하지 않아 실패처리
+    func setBackgroundColor(progress: Int) {
+        if progress == 0 {
+            cellBlock.backgroundColor = UIColor.fill.brand
+            dateLabel.textColor = .white
+        }
+        else if progress == 1 {
+            cellBlock.backgroundColor = UIColor(245, 248, 255, 1)
+            dateLabel.textColor = UIColor(99, 102, 241, 1)
+        }
+        else {
+            cellBlock.backgroundColor = UIColor(249, 115, 22, 1)
+            dateLabel.textColor = .white
+        }
     }
     
     func resetOpacity() {
