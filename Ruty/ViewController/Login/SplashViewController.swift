@@ -30,6 +30,7 @@ class SplashViewController: UIViewController {
     func performAutoLogin() {
         guard let accessToken = UserDefaults.standard.string(forKey: "accessToken") else {
             // 토큰이 없다면 로그인 화면으로 이동
+            moveToLoginView()
             return
         }
         
