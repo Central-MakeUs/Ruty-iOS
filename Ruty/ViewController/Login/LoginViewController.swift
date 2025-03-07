@@ -13,6 +13,8 @@ import GoogleSignIn
 import AuthenticationServices
 
 class LoginViewController: UIViewController {
+    static let shared = LoginViewController()
+    var splashVC : SplashViewController?
     
     var isRecommendDataExist : Bool?
     var isRoutineDataExist : Bool?
@@ -110,6 +112,7 @@ class LoginViewController: UIViewController {
     }
     
     override func viewDidAppear(_ animated: Bool) {
+        
         // 디버깅 안할땐 주석처리 필수
         //        let secondVC = RoutineViewController()
         //        secondVC.modalPresentationStyle = .fullScreen
@@ -201,9 +204,11 @@ class LoginViewController: UIViewController {
                 switch result {
                 case .success(let data):
                     do {
-                        let decodedResponse = try JSONDecoder().decode(JSONModel.GoogleLoginResponse.self, from: data)
+                        let decodedResponse = try JSONDecoder().decode(JSONModel.LoginResponse.self, from: data)
                         if decodedResponse.message == "ok" {
+                            UserDefaults.standard.set("google", forKey: "lastLoginType")
                             UserDefaults.standard.set(decodedResponse.data.accessToken, forKey: "accessToken")
+                            UserDefaults.standard.set(decodedResponse.data.refreshToken, forKey: "refreshToken")
                             DataManager.shared.socialType = "GOOGLE"
                             // 로그인 성공
                             // 회원가입 or 메인뷰로 이동
@@ -254,7 +259,6 @@ class LoginViewController: UIViewController {
             case .success(let data):
                 do {
                     let decodedResponse = try JSONDecoder().decode(JSONModel.SignResponse.self, from: data)
-
                     // 회원가입이 필요함
                     if decodedResponse.data == nil {
                         self.moveToSignUp() // 회원가입 창으로 이동
@@ -314,9 +318,40 @@ class LoginViewController: UIViewController {
     }
     
     func moveToOnBoarding() {
-        let secondVC = OnBoardingMainViewController()
-        secondVC.modalPresentationStyle = .fullScreen
-        self.present(secondVC, animated: true)
+        let url = NetworkManager.shared.getRequestURL(api: "/api/goal")
+        NetworkManager.shared.requestAPI(url: url, method: .get, encoding: URLEncoding.default, param: nil) { result in
+            
+            switch result {
+            case .success(let data):
+                do {
+                    let decodedResponse = try JSONDecoder().decode(JSONModel.AllGoal.self, from: data)
+                    if decodedResponse.message == "ok" {
+                        
+                        let secondVC = OnBoardingMainViewController()
+                        secondVC.goalData = decodedResponse
+                        secondVC.modalPresentationStyle = .fullScreen
+                        
+                        if self.splashVC != nil {
+                            self.splashVC!.present(secondVC, animated: true)
+                        }
+                        else {
+                            self.present(secondVC, animated: true)
+                        }
+                    }
+                    else {
+                        print("서버 연결 오류")
+                        ErrorViewController.showErrorPage(viewController: self)
+                    }
+                } catch {
+                    print("JSON 디코딩 오류: \(error)")
+                    ErrorViewController.showErrorPage(viewController: self)
+                }
+            case .failure(let error):
+                // 요청이 실패한 경우
+                print("API 요청 실패: \(error.localizedDescription)")
+                ErrorViewController.showErrorPage(viewController: self)
+            }
+        }
     }
     
     func moveToSignUp() {
@@ -327,13 +362,29 @@ class LoginViewController: UIViewController {
         let navigationController = UINavigationController(rootViewController: secondVC)
         navigationController.modalPresentationStyle = .fullScreen
         self.present(navigationController, animated: true, completion: nil)
+        
+        if self.splashVC != nil {
+            self.splashVC!.present(navigationController, animated: true)
+        }
+        else {
+            self.present(navigationController, animated: true, completion: nil)
+        }
     }
     
     func moveToMainView() {
         let nextVC = MainHomeViewController()
         let newNavController = UINavigationController(rootViewController: nextVC)
         newNavController.modalPresentationStyle = .fullScreen
-        DispatchQueue.main.async {
+//        DispatchQueue.main.async {
+//            self.view.window?.rootViewController = newNavController
+//            self.view.window?.makeKeyAndVisible()
+//        }
+        
+        if self.splashVC != nil {
+            self.splashVC!.view.window?.rootViewController = newNavController
+            self.splashVC!.view.window?.makeKeyAndVisible()
+        }
+        else {
             self.view.window?.rootViewController = newNavController
             self.view.window?.makeKeyAndVisible()
         }
@@ -368,9 +419,11 @@ extension LoginViewController: ASAuthorizationControllerDelegate {
                     switch result {
                     case .success(let data):
                         do {
-                            let decodedResponse = try JSONDecoder().decode(JSONModel.AppleLoginResponse.self, from: data)
+                            let decodedResponse = try JSONDecoder().decode(JSONModel.LoginResponse.self, from: data)
                             if decodedResponse.message == "ok" {
+                                UserDefaults.standard.set("apple", forKey: "lastLoginType")
                                 UserDefaults.standard.set(decodedResponse.data.accessToken, forKey: "accessToken")
+                                UserDefaults.standard.set(decodedResponse.data.refreshToken, forKey: "refreshToken")
                                 print("Apple 로그인 성공")
                                 DataManager.shared.socialType = "APPLE"
                                 // 로그인 성공. 회원가입 or 메인뷰로 이동

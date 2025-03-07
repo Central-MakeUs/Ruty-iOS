@@ -143,6 +143,7 @@ class MainHomeViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        requestUserInfo()
         loadCategoryLevel()
         loadTodayData()
 
@@ -164,6 +165,24 @@ class MainHomeViewController: UIViewController {
     }
     
     // MARK: - api 요청
+    
+    func requestUserInfo() {
+        var url = NetworkManager.shared.getRequestURL(api: "/api/profile")
+        NetworkManager.shared.requestAPI(url: url, method: .get, encoding: URLEncoding.default, param: nil) { result in
+            switch result {
+            case .success(let data):
+                do {
+                    let decodedResponse = try JSONDecoder().decode(JSONModel.AppleUserInfoResponse.self, from: data)
+                    DataManager.shared.userNickName = decodedResponse.data.nickName
+                    DataManager.shared.socialType = decodedResponse.data.socialType
+                } catch {
+                    print("추천 JSON 디코딩 오류: \(error)")
+                }
+            case .failure(let error):
+                print("네트워크 api 요청 실패: \(error)")
+            }
+        }
+    }
     
     // 회원 탈퇴 클릭
     @objc func tapDeleteBtn() {
@@ -290,10 +309,7 @@ class MainHomeViewController: UIViewController {
                     let decodedResponse = try JSONDecoder().decode(JSONModel.AllRoutineResponse.self, from: data)
                     if decodedResponse.message == "ok" {
                         
-                        // 민감 정보 제거된 데이터
-                        let sanitizedData = self.manageSecurity(decodedResponse: decodedResponse)
-                        
-                        self.rawAllRoutinesData = sanitizedData
+                        self.rawAllRoutinesData = decodedResponse
                         self.sortMyRoutineData()
                         completion()
                     }
@@ -358,47 +374,6 @@ class MainHomeViewController: UIViewController {
                 ErrorViewController.showErrorPage(viewController: self)
             }
         }
-    }
-    
-    // MARK: - 암호화
-    func manageSecurity(decodedResponse: JSONModel.AllRoutineResponse) -> JSONModel.AllRoutineResponse {
-        for routine in decodedResponse.data {
-            let refreshToken = routine.memberInfoDto.refreshToken
-            // 보통 한 사용자 당 하나의 refresh token을 갖기 때문에, memberId를 키로 사용할 수 있음.
-            let key = "refreshToken_\(routine.memberInfoDto.memberId)"
-            if let tokenData = refreshToken.data(using: .utf8) {
-                KeychainHelper.shared.save(tokenData, service: "com.example.myapp", account: key)
-            }
-        }
-        
-        let sanitizedData = JSONModel.AllRoutineResponse(
-            message: decodedResponse.message,
-            data: decodedResponse.data.map { routine in
-                let member = routine.memberInfoDto
-                let sanitizedMember = JSONModel.MemberInfoDto(
-                    memberId: member.memberId,
-                    email: member.email,
-                    nickName: member.nickName,
-                    name: member.name,
-                    picture: member.picture,
-                    isAgree: member.isAgree,
-                    socialType: member.socialType,
-                    refreshToken: "" // 민감 정보 제거
-                )
-                return JSONModel.AllRoutine(
-                    routineId: routine.routineId,
-                    title: routine.title,
-                    description: routine.description,
-                    weekList: routine.weekList,
-                    startDate: routine.startDate,
-                    endDate: routine.endDate,
-                    category: routine.category,
-                    memberInfoDto: sanitizedMember
-                )
-            }
-        )
-        
-        return sanitizedData
     }
     
     // MARK: - 카테고리 레벨 관련 함수
@@ -507,6 +482,7 @@ class MainHomeViewController: UIViewController {
         }
     }
     
+    // 나의 모든 루틴 보기 버튼 클릭
     @objc func tapMyRoutineBtn() {
         loadAllData {
             let nextVC = MyRoutineViewController()

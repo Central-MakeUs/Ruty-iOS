@@ -87,8 +87,9 @@ class ImproveSelectTableViewCell: UITableViewCell {
         }
     }
     
-    func setContent(text: String) {
+    func setContent(text: String, category: String) {
         content.text = text
+        image.image = UIImage(named: RoutineCategoryImage.shared[category] ?? "housing")
     }
     
     func tapCell() {

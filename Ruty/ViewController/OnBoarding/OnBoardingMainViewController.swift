@@ -9,6 +9,8 @@ import UIKit
 
 class OnBoardingMainViewController: UIViewController {
     
+    var goalData : JSONModel.AllGoal?
+    
     private let contentScrollView = UIScrollView().then {
         $0.backgroundColor = .white
         $0.showsVerticalScrollIndicator = false
@@ -69,8 +71,6 @@ class OnBoardingMainViewController: UIViewController {
         $0.isScrollEnabled = false
     }
     
-    private var data: [ImproveSelectModel] = []
-    
     var selectedCellCnt = 0
     
     override func viewDidLoad() {
@@ -83,7 +83,6 @@ class OnBoardingMainViewController: UIViewController {
         
         // table view func
         setupTableView()
-        loadData()
         
         setLayout()
         
@@ -243,10 +242,6 @@ class OnBoardingMainViewController: UIViewController {
     }
     
     // MARK: - TableView Func
-    private func loadData() {
-        data = ImproveSelectDataProvider.shared.fetchData()
-    }
-    
     private func setupTableView() {
         tableView.delegate = self
         tableView.dataSource = self
@@ -259,16 +254,16 @@ class OnBoardingMainViewController: UIViewController {
 extension OnBoardingMainViewController : UITableViewDelegate, UITableViewDataSource {
     // MARK: - UITableViewDataSource
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return data.count
+        return (goalData?.data.count)!
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        guard let cell = tableView.dequeueReusableCell(withIdentifier: ImproveSelectTableViewCell.identifier, for: indexPath) as? ImproveSelectTableViewCell else {
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: ImproveSelectTableViewCell.identifier, for: indexPath) as? ImproveSelectTableViewCell, let goalData = goalData else {
             return UITableViewCell()
         }
-        
-        let item = data[indexPath.row]
-        cell.setContent(text: item.content)
+
+        let item = goalData.data[indexPath.row]
+        cell.setContent(text: item.content, category: item.category )
         
         // cell 클릭시 보이게 되는 회색 배경색 제거
         let background = UIView()

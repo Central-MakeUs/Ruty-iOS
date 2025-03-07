@@ -45,5 +45,6 @@ extension UIColor {
     
     struct border {
         static let secondary = UIColor(209, 213, 219, 1)
+        static let primary = UIColor(229, 231, 235, 1)
     }
 }
