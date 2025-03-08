@@ -12,10 +12,14 @@
 		577E02AB2D2EBAF2007005E5 /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = 577E02AA2D2EBAF2007005E5 /* Alamofire */; };
 		577E02AE2D2EBB0D007005E5 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 577E02AD2D2EBB0D007005E5 /* GoogleSignIn */; };
 		577E02B02D2EBB0D007005E5 /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 577E02AF2D2EBB0D007005E5 /* GoogleSignInSwift */; };
+		BE111B566EA1A234E75CAB95 /* Pods_Ruty.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AF198DD88120C31EA6916F90 /* Pods_Ruty.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		22BFDE25F5A261B0C6784BC3 /* Pods-Ruty.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Ruty.debug.xcconfig"; path = "Target Support Files/Pods-Ruty/Pods-Ruty.debug.xcconfig"; sourceTree = "<group>"; };
 		577E025B2D2E76C9007005E5 /* Ruty.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Ruty.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AF198DD88120C31EA6916F90 /* Pods_Ruty.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Ruty.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		EA55097EA254727A9381B82A /* Pods-Ruty.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Ruty.release.xcconfig"; path = "Target Support Files/Pods-Ruty/Pods-Ruty.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -49,17 +53,28 @@
 				577E02AE2D2EBB0D007005E5 /* GoogleSignIn in Frameworks */,
 				577E02A52D2EBAB4007005E5 /* SnapKit in Frameworks */,
 				577E02A82D2EBADE007005E5 /* Then in Frameworks */,
+				BE111B566EA1A234E75CAB95 /* Pods_Ruty.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		52319CB0778FA663A7EF590E /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				AF198DD88120C31EA6916F90 /* Pods_Ruty.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		577E02522D2E76C9007005E5 = {
 			isa = PBXGroup;
 			children = (
 				577E025D2D2E76C9007005E5 /* Ruty */,
 				577E025C2D2E76C9007005E5 /* Products */,
+				BE08FEA3F7D604BB0A06AEA4 /* Pods */,
+				52319CB0778FA663A7EF590E /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -71,6 +86,15 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		BE08FEA3F7D604BB0A06AEA4 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				22BFDE25F5A261B0C6784BC3 /* Pods-Ruty.debug.xcconfig */,
+				EA55097EA254727A9381B82A /* Pods-Ruty.release.xcconfig */,
+			);
+			path = Pods;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -78,9 +102,11 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 577E026E2D2E76CA007005E5 /* Build configuration list for PBXNativeTarget "Ruty" */;
 			buildPhases = (
+				4291251B8B5AA81D36A65B18 /* [CP] Check Pods Manifest.lock */,
 				577E02572D2E76C9007005E5 /* Sources */,
 				577E02582D2E76C9007005E5 /* Frameworks */,
 				577E02592D2E76C9007005E5 /* Resources */,
+				6A02F35BCC55E6DA27F33E4E /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -151,6 +177,48 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		4291251B8B5AA81D36A65B18 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-Ruty-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		6A02F35BCC55E6DA27F33E4E /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Ruty/Pods-Ruty-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Ruty/Pods-Ruty-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Ruty/Pods-Ruty-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		577E02572D2E76C9007005E5 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -164,6 +232,7 @@
 /* Begin XCBuildConfiguration section */
 		577E026F2D2E76CA007005E5 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 22BFDE25F5A261B0C6784BC3 /* Pods-Ruty.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -171,6 +240,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = CX8QXFQAMZ;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Ruty/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -182,7 +252,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.0.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.jaySeong.Ruty;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -197,6 +267,7 @@
 		};
 		577E02702D2E76CA007005E5 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = EA55097EA254727A9381B82A /* Pods-Ruty.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -204,6 +275,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = CX8QXFQAMZ;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Ruty/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -215,7 +287,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.0.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.jaySeong.Ruty;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -282,7 +354,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
@@ -341,7 +413,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;

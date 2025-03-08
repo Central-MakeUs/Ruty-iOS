@@ -85,6 +85,30 @@ class NetworkManager {
                 }
             }
     }
+    
+    
+    func requestRefeshAccessTokenAPI(url: String, method: HTTPMethod, encoding: ParameterEncoding, param: Parameters?, completion : @escaping (Result<Data, Error>) -> Void) {
+        let accessToken = UserDefaults.standard.string(forKey: "accessToken") ?? ""
+        let refreshToken = UserDefaults.standard.string(forKey: "refreshToken") ?? ""
+        print("refreshToken: \(refreshToken)")
+        let header: HTTPHeaders = [
+            "Authorization-refresh": "Bearer \(refreshToken)",
+            "Content-Type":"application/json", "Accept":"application/json"
+        ]
+        
+        AF.request(url,
+                   method: method,
+                   parameters: param ?? nil,
+                   encoding: encoding,
+                   headers: header)
+        .validate(statusCode: 200..<300)
+        .responseData { response in
+            switch response.result {
+            case .success(let data):
+                completion(.success(data))
+            case .failure(let error):
+                completion(.failure(error))
+            }
+        }
+    }
 }
-
-

@@ -109,6 +109,15 @@ class MainHomeViewController: UIViewController {
         $0.addTarget(self, action: #selector(tapRecommendRoutineBtn), for: .touchUpInside)
     }
     
+    private let myRoutineBtn = UIButton().then {
+        $0.backgroundColor = UIColor.fill.secondary
+        $0.layer.cornerRadius = 12
+        $0.setTitle("나의 루틴", for: .normal)
+        $0.titleLabel?.font = UIFont(name: Font.semiBold.rawValue, size: 16)
+        $0.setTitleColor(UIColor.font.primary, for: .normal)
+        $0.addTarget(self, action: #selector(tapMyRoutineBtn), for: .touchUpInside)
+    }
+    
     let deleteBtn = UIButton().then {
         $0.setTitle("회원탈퇴", for: .normal)
         $0.backgroundColor = .white
@@ -123,13 +132,18 @@ class MainHomeViewController: UIViewController {
     private var sortedCategoryLevels = [JSONModel.CategoryLevel](repeating: JSONModel.CategoryLevel(category: "", level: 1, totalPoints: 0), count: 4)
     private var categoryLevelAfterRoutineDone = JSONModel.CategoryLevelAfterRoutineDone(message: "", data: JSONModel.CategoryLevel(category: "", level: 1, totalPoints: 1))
     
-    // 루틴 데이터
+    // 오늘의 루틴 데이터
     private var todayRoutineData = JSONModel.RoutinesResponse(message: "", data: []) // 모든 오늘의 루틴 데이터
     private var sortedTodayRoutineData = [[JSONModel.Routine]](repeating: [JSONModel.Routine](), count: 4) // 카테고리별 정렬 & 완료된 루틴은 삭제된 루틴 데이터
-    private var showTodayRoutineData = [JSONModel.Routine]() // 사용자에게 보여질 루트 데이터
+    private var showTodayRoutineData = [JSONModel.Routine]() // 사용자에게 보여질 오늘의 루트 데이터
+    
+    // 사용자의 모든 루틴 데이터
+    private var rawAllRoutinesData = JSONModel.AllRoutineResponse(message: "", data: [])
+    private var sortedAllRoutinesData = [[JSONModel.AllRoutine]](repeating: [JSONModel.AllRoutine](), count: 4)
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        requestUserInfo()
         loadCategoryLevel()
         loadTodayData()
 
@@ -151,6 +165,24 @@ class MainHomeViewController: UIViewController {
     }
     
     // MARK: - api 요청
+    
+    func requestUserInfo() {
+        var url = NetworkManager.shared.getRequestURL(api: "/api/profile")
+        NetworkManager.shared.requestAPI(url: url, method: .get, encoding: URLEncoding.default, param: nil) { result in
+            switch result {
+            case .success(let data):
+                do {
+                    let decodedResponse = try JSONDecoder().decode(JSONModel.AppleUserInfoResponse.self, from: data)
+                    DataManager.shared.userNickName = decodedResponse.data.nickName
+                    DataManager.shared.socialType = decodedResponse.data.socialType
+                } catch {
+                    print("추천 JSON 디코딩 오류: \(error)")
+                }
+            case .failure(let error):
+                print("네트워크 api 요청 실패: \(error)")
+            }
+        }
+    }
     
     // 회원 탈퇴 클릭
     @objc func tapDeleteBtn() {
@@ -268,20 +300,31 @@ class MainHomeViewController: UIViewController {
     }
     
     // 사용자의 모든 루틴 요청
-    func loadAllData() {
+    func loadAllData(completion: @escaping () -> ()) {
         let url = NetworkManager.shared.getRequestURL(api: "/api/routine")
         NetworkManager.shared.requestAPI(url: url, method: .get, encoding: URLEncoding.default, param: nil) { result in
             switch result {
             case .success(let data):
-                if let jsonString = String(data: data, encoding: .utf8) {
-                    print("모든 루틴 JSON 문자열: \(jsonString)")
-                } else {
-                    print("Data를 문자열로 변환할 수 없습니다.")
+                do {
+                    let decodedResponse = try JSONDecoder().decode(JSONModel.AllRoutineResponse.self, from: data)
+                    if decodedResponse.message == "ok" {
+                        
+                        self.rawAllRoutinesData = decodedResponse
+                        self.sortMyRoutineData()
+                        completion()
+                    }
+                    else {
+                        print("서버 연결 오류")
+                        ErrorViewController.showErrorPage(viewController: self)
+                    }
+                } catch {
+                    print("루틴 JSON 디코딩 오류: \(error)")
+                    ErrorViewController.showErrorPage(viewController: self)
                 }
-                
             case .failure(let error):
                 // 요청이 실패한 경우
                 print("API 요청 실패: \(error.localizedDescription)")
+                ErrorViewController.showErrorPage(viewController: self)
             }
         }
     }
@@ -347,7 +390,7 @@ class MainHomeViewController: UIViewController {
         }
     }
     
-    // MARK: - 루틴 관련 함수
+    // MARK: - 오늘의 루틴 관련 함수
     // 루틴 카테고리별로 정렬, 완료된 루틴은 제외
     private func sortTodayRoutineData() {
         // sortedTodayRoutineData 초기화
@@ -400,6 +443,22 @@ class MainHomeViewController: UIViewController {
         }
     }
     
+    // MARK: - 나의 루틴 관련 함수
+    private func sortMyRoutineData() {
+        // sortedTodayRoutineData 초기화
+        sortedAllRoutinesData = [[JSONModel.AllRoutine]](repeating: [JSONModel.AllRoutine](), count: 4)
+        
+        for item in rawAllRoutinesData.data {
+            switch item.category {
+            case "HOUSE" : sortedAllRoutinesData[0].append(item)
+            case "MONEY" : sortedAllRoutinesData[1].append(item)
+            case "LEISURE" : sortedAllRoutinesData[2].append(item)
+            case "SELFCARE" : sortedAllRoutinesData[3].append(item)
+            default: break
+            }
+        }
+    }
+    
     // MARK: - addObserver Func
     func setObserver() {
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(tapAddRoutineBtn(_:)))
@@ -419,6 +478,16 @@ class MainHomeViewController: UIViewController {
             let nextVC = RoutineViewController()
             nextVC.modalPresentationStyle = .fullScreen
             nextVC.isReload = true
+            self.navigationController?.pushViewController(nextVC, animated: true)
+        }
+    }
+    
+    // 나의 모든 루틴 보기 버튼 클릭
+    @objc func tapMyRoutineBtn() {
+        loadAllData {
+            let nextVC = MyRoutineViewController()
+            nextVC.setAllRoutinesData(data: self.sortedAllRoutinesData)
+            nextVC.modalPresentationStyle = .fullScreen
             self.navigationController?.pushViewController(nextVC, animated: true)
         }
     }
@@ -465,7 +534,7 @@ class MainHomeViewController: UIViewController {
     private func setLayout() {
         [topBackgroundView, bottomBackgroundView, contentScrollView].forEach({ view.addSubview($0) })
         [contentView].forEach({ contentScrollView.addSubview($0) })
-        [categoryBoxView, tableViewTopView, tableViewTopLabel, tableView, addRoutineView, recommendRoutineBtn, deleteBtn].forEach({ contentView.addSubview($0) })
+        [categoryBoxView, tableViewTopView, tableViewTopLabel, tableView, addRoutineView, recommendRoutineBtn, myRoutineBtn,  deleteBtn].forEach({ contentView.addSubview($0) })
         [addRoutineStackView].forEach({ addRoutineView.addSubview($0) })
         [addRoutineMark, addRoutineLabel].forEach({ addRoutineStackView.addArrangedSubview($0) })
         [categoryCollectionView].forEach({ categoryBoxView.addSubview($0) })
@@ -533,7 +602,15 @@ class MainHomeViewController: UIViewController {
         
         self.recommendRoutineBtn.snp.makeConstraints {
             $0.bottom.equalTo(deleteBtn.snp.top).offset(-20)
-            $0.left.right.equalToSuperview().inset(20)
+            $0.right.equalTo(contentView.snp.centerX).offset(-8)
+            $0.left.equalToSuperview().inset(20)
+            $0.height.equalTo(48)
+        }
+        
+        self.myRoutineBtn.snp.makeConstraints {
+            $0.bottom.equalTo(deleteBtn.snp.top).offset(-20)
+            $0.left.equalTo(contentView.snp.centerX).offset(8)
+            $0.right.equalToSuperview().inset(20)
             $0.height.equalTo(48)
         }
         
