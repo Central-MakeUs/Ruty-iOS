@@ -174,7 +174,7 @@ class GoalSettingViewController: UIViewController {
     }
     
     let sliderEndLabel = UILabel().then {
-        $0.text = "최소 6개월"
+        $0.text = "최대 6개월"
         $0.textColor = UIColor.font.secondary
         $0.textAlignment = .left
         $0.font = UIFont(name: Font.semiBold.rawValue, size: 14)

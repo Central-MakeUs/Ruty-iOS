@@ -283,10 +283,10 @@ class LoginViewController: UIViewController {
                         
                         RoutineDataProvider.shared.isRecommendedEver { isExist in
                             self.isRecommendDataExist = isExist
-                            if self.isRoutineDataExist != nil { self.controlToOnboardingOrMain() }
+                            if self.isRoutineDataExist != nil { self.controlToSignUpOrMain() }
                         } routineCompletion: { isExist in
                             self.isRoutineDataExist = isExist
-                            if self.isRecommendDataExist != nil { self.controlToOnboardingOrMain() }
+                            if self.isRecommendDataExist != nil { self.controlToSignUpOrMain() }
                         }
                     }
                 } catch {
@@ -318,12 +318,13 @@ class LoginViewController: UIViewController {
         }
     }
     
-    func controlToOnboardingOrMain() {
+    func controlToSignUpOrMain() {
         guard let isRecommendDataExist = isRecommendDataExist, let isRoutineDataExist = isRoutineDataExist else { return }
         
         // 추천받은 루틴이 없는 경우 (회원가입 한 후 추천받지 않고 바로 앱 종료 한 경우)
+        // 회원가입부터 다시 시작하도록 함
         if !isRecommendDataExist && !isRoutineDataExist {
-            moveToOnBoarding()
+            moveToSignUp()
         }
         else {
             moveToMainView() // 메인화면으로 이동
@@ -388,10 +389,6 @@ class LoginViewController: UIViewController {
         let nextVC = MainHomeViewController()
         let newNavController = UINavigationController(rootViewController: nextVC)
         newNavController.modalPresentationStyle = .fullScreen
-//        DispatchQueue.main.async {
-//            self.view.window?.rootViewController = newNavController
-//            self.view.window?.makeKeyAndVisible()
-//        }
         
         if self.splashVC != nil {
             self.splashVC!.view.window?.rootViewController = newNavController
