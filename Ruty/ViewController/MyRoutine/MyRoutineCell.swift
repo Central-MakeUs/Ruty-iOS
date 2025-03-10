@@ -248,11 +248,6 @@ class MyRoutineCell: UITableViewCell {
         guard let id = id else { return }
         print("id: \(id)")
         let url = NetworkManager.shared.getRequestURL(api: "/api/routine/history/\(id)")
-//        let param = JSONModel.RoutineHistory(routineId: id, year: 2025, month: 3) // 달력 임시 값
-//        
-//        guard let jsonData = try? JSONEncoder().encode(param),
-//              let param = try? JSONSerialization.jsonObject(with: jsonData) as? [String: Any] else { return }
-//
         
         let today = Date()
         let calendar = Calendar.current

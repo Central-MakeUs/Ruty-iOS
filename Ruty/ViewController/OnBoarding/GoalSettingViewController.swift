@@ -202,8 +202,6 @@ class GoalSettingViewController: UIViewController {
         addObserver()
         setTextField()
         selectFirstCategory()
-        
-
     }
     
     override func viewWillAppear(_ animated: Bool) {

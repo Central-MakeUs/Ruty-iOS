@@ -55,9 +55,6 @@ class LoadingViewController: UIViewController {
         
         // 로딩 뷰 설정
         setupRotatingView()
-        
-        // ai 데이터 생성 대기 시작
-        //tryLoadAIData(tryCount: 1)
     }
 
     override func viewWillAppear(_ animated: Bool) {
