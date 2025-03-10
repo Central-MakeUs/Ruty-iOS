@@ -91,6 +91,10 @@ class OnBoardingMainViewController: UIViewController {
         contentScrollView.panGestureRecognizer.require(toFail: tableView.panGestureRecognizer)
     }
     
+    override func viewWillAppear(_ animated: Bool) {
+        isTappedLoadAIData = false
+    }
+    
     override func viewDidAppear(_ animated: Bool) {
         // 프로그래스 바 0.3 -> 0.6 변화 애니메이션
         self.progressBarView.ratio = 0.6
@@ -190,6 +194,7 @@ class OnBoardingMainViewController: UIViewController {
         navigationController?.popViewController(animated: true)
     }
     
+    var isTappedLoadAIData = false
     @objc func goNextPage() {
         // 0 개인 경우 통과 불가
         if selectedCellCnt == 0 {
@@ -209,6 +214,9 @@ class OnBoardingMainViewController: UIViewController {
             }
             else {
                 // GPT Prompt 전달
+                guard !isTappedLoadAIData else { return }
+                isTappedLoadAIData = true
+                
                 RoutineDataProvider.shared.setGPTParam(prompt: getGPTPrompt())
                 
                 let secondVC = LoadingViewController()

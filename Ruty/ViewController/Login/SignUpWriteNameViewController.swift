@@ -149,6 +149,9 @@ class SignUpWriteNameViewController: UIViewController {
         // 스와이프 뒤로 가기 제스처 다시 활성화
         navigationController?.interactivePopGestureRecognizer?.delegate = self
         navigationController?.interactivePopGestureRecognizer?.isEnabled = true
+        
+        // tap flag 초기화
+        isTappedNextPage = false
     }
 
     func requestSignUp() {
@@ -256,13 +259,18 @@ class SignUpWriteNameViewController: UIViewController {
         }
     }
     
+    var isTappedNextPage = false
     @objc func tapNextPageBtn() {
         if let text = textField.text, text.first == " " {
             print("첫 입력으로 공백은 불가, 다음페이지로 이동 불가")
         }
         else if isNickNameCheckd == 2 || isNickNameCheckd == 3 {
             if DataManager.shared.isGuest! { moveToNextPage() }
-            else { requestSignUp() }
+            else {
+                guard !isTappedNextPage else { return }
+                isTappedNextPage = true
+                requestSignUp()
+            }
         }
         else {
             print("다음페이지로 이동 불가")

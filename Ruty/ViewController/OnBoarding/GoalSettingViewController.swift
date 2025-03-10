@@ -210,6 +210,8 @@ class GoalSettingViewController: UIViewController {
         // 스와이프 뒤로 가기 제스처 다시 활성화
         navigationController?.interactivePopGestureRecognizer?.delegate = self
         navigationController?.interactivePopGestureRecognizer?.isEnabled = true
+        
+        isTappedComplete = false
     }
     
     override func viewDidLayoutSubviews() {
@@ -440,6 +442,7 @@ class GoalSettingViewController: UIViewController {
         }
     }
     
+    var isTappedComplete = false
     @objc func tapCompleteBtn() {
 
         if textField.text == "" {
@@ -465,6 +468,9 @@ class GoalSettingViewController: UIViewController {
             let title = textField.text ?? ""
             let description = routineDescription ?? ""
             let categoryText = category ?? "HOUSE"
+            
+            guard !isTappedComplete else { return }
+            isTappedComplete = true
             
             // 추천된 루틴 저장
             if isRecommendedData {

@@ -157,6 +157,11 @@ class MainHomeViewController: UIViewController {
     override func viewWillAppear(_ animated: Bool) {
         print("뷰 보여짐")
         loadTodayData()
+        
+        // tap flag 초기화
+        isTappedAddRoutine = false
+        isTappedRecommendRoutine = false
+        isTappedAllRoutine = false
     }
     
     override func viewDidLayoutSubviews() {
@@ -465,7 +470,11 @@ class MainHomeViewController: UIViewController {
         addRoutineView.addGestureRecognizer(tapGesture)
     }
     
+    var isTappedAddRoutine = false
     @objc func tapAddRoutineBtn(_ sender: UIButton) {
+        guard !isTappedAddRoutine else { return }
+        
+        isTappedAddRoutine = true
         let nextVC = GoalSettingViewController()
         nextVC.modalPresentationStyle = .fullScreen
         nextVC.isRecommendedData = false
@@ -473,7 +482,12 @@ class MainHomeViewController: UIViewController {
         self.navigationController?.pushViewController(nextVC, animated: true)
     }
     
+    
+    var isTappedRecommendRoutine = false
     @objc func tapRecommendRoutineBtn() {
+        guard !isTappedRecommendRoutine else { return }
+        
+        isTappedRecommendRoutine = true
         RoutineDataProvider.shared.loadRecommendedData {
             let nextVC = RoutineViewController()
             nextVC.modalPresentationStyle = .fullScreen
@@ -482,8 +496,12 @@ class MainHomeViewController: UIViewController {
         }
     }
     
+    var isTappedAllRoutine = false
     // 나의 모든 루틴 보기 버튼 클릭
     @objc func tapMyRoutineBtn() {
+        guard !isTappedAllRoutine else { return }
+        
+        isTappedAllRoutine = true
         loadAllData {
             let nextVC = MyRoutineViewController()
             nextVC.setAllRoutinesData(data: self.sortedAllRoutinesData)

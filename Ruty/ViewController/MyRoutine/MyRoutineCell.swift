@@ -199,7 +199,12 @@ class MyRoutineCell: UITableViewCell {
         }
     }
 
+    var isTappedShowRoutine = false
     @objc func tapShowRoutineInfoBtn() {
+        guard !isTappedShowRoutine else { return }
+        
+        isTappedShowRoutine = true
+        
         var isRoutineHistory = false
         var isRoutineProcess = false
         

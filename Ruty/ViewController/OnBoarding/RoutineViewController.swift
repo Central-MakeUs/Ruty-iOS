@@ -130,6 +130,9 @@ class RoutineViewController: UIViewController {
             navigationController?.interactivePopGestureRecognizer?.delegate = self
             navigationController?.interactivePopGestureRecognizer?.isEnabled = true
         }
+        
+        // tap flag 초기화
+        isTappedMovePage = false
     }
     
     override func viewDidLayoutSubviews() {
@@ -224,7 +227,11 @@ class RoutineViewController: UIViewController {
     }
     
     // MARK: - tap 함수
+    var isTappedMovePage = false
     @objc func moveToSettingPage(_ notification: Notification) {
+        guard !isTappedMovePage else { return }
+        isTappedMovePage = true
+        
         guard let userInfo = notification.userInfo else { return }
         guard let routineName = userInfo["routineName"] as? String else { return }
         guard let id = userInfo["id"] as? Int else { return }

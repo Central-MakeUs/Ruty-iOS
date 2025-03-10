@@ -101,6 +101,14 @@ class MyRoutineViewController: UIViewController {
         navigationController?.interactivePopGestureRecognizer?.isEnabled = true
         
         updateData()
+        
+        // cell tap flag 초기화
+        for cell in tableView.visibleCells {
+            if let cell = cell as? MyRoutineCell {
+                // 셀에 대한 작업 수행
+                cell.isTappedShowRoutine = false
+            }
+        }
     }
     
     override func viewDidLayoutSubviews() {

@@ -98,6 +98,8 @@ class LoginViewController: UIViewController {
         $0.addTarget(self, action: #selector(tapGuestLoginButn), for: .touchUpInside)
     }
 
+    var isTappedLogin = false
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         self.view.backgroundColor = .black
@@ -109,6 +111,10 @@ class LoginViewController: UIViewController {
         
         let appleTapGesture = UITapGestureRecognizer(target: self, action: #selector(tapAppleLoginBtn(_:)))
         appleLoginView.addGestureRecognizer(appleTapGesture)
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        isTappedLogin = false
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -186,9 +192,14 @@ class LoginViewController: UIViewController {
     }
 
     @objc func tapGoogleLoginBtn(_ sender: UIButton) {
+        guard !isTappedLogin else { return }
+        
         // SDK 로그인 방식
         GIDSignIn.sharedInstance.signIn(withPresenting: self) { signInResult, error in
             guard error == nil else { return }
+            
+            // 로그인 성공 후 로그인 버튼 여러번 클릭 막음
+            self.isTappedLogin = true
             
             let user = signInResult?.user
             let idToken = user?.idToken?.tokenString
@@ -237,6 +248,8 @@ class LoginViewController: UIViewController {
     }
     
     @objc func tapAppleLoginBtn(_ sender: UIButton) {
+        guard !isTappedLogin else { return }
+        
         // SDK 로그인 방식
         let provider = ASAuthorizationAppleIDProvider()
         let requset = provider.createRequest()
@@ -414,6 +427,9 @@ extension LoginViewController: ASAuthorizationControllerDelegate {
                 guard let jsonData = try? JSONEncoder().encode(param),
                       var param = try? JSONSerialization.jsonObject(with: jsonData) as? [String: Any] else { return }
                 
+                // 로그인 성공 후 로그인 버튼 여러번 클릭 막음
+                self.isTappedLogin = true
+
                 UserDefaults.standard.set(authorizationCodeString, forKey: "authCode")
                 NetworkManager.shared.requestAPI(url: url, method: .post, encoding: JSONEncoding.default, param: param) { result in
                     switch result {
