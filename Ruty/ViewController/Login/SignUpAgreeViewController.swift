@@ -19,6 +19,7 @@ class SignUpAgreeViewController: UIViewController {
     
     let backBtn = UIButton().then {
         $0.setImage(UIImage(named: "back"), for: .normal)
+        $0.isExclusiveTouch = true
     }
     
     private let progressBarView = ProgressBarView().then {
@@ -115,6 +116,7 @@ class SignUpAgreeViewController: UIViewController {
         $0.setTitle("다음으로", for: .normal)
         $0.titleLabel?.font = UIFont(name: Font.semiBold.rawValue, size: 16)
         $0.setTitleColor(.white, for: .normal)
+        $0.isExclusiveTouch = true
     }
         
     var isAllAgree = false {

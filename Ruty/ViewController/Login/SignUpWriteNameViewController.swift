@@ -23,6 +23,7 @@ class SignUpWriteNameViewController: UIViewController {
     
     let backBtn = UIButton().then {
         $0.setImage(UIImage(named: "back"), for: .normal)
+        $0.isExclusiveTouch = true
     }
     
     let titleLabel1 = UILabel().then {
@@ -100,6 +101,7 @@ class SignUpWriteNameViewController: UIViewController {
         $0.setTitle("다음으로", for: .normal)
         $0.titleLabel?.font = UIFont(name: Font.semiBold.rawValue, size: 16)
         $0.setTitleColor(.white, for: .normal)
+        $0.isExclusiveTouch = true
     }
     
     // 1 : 문자 하나라도 입력해야함

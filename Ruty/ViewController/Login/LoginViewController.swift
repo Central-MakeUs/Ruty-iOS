@@ -32,6 +32,7 @@ class LoginViewController: UIViewController {
         $0.backgroundColor = UIColor.fill.secondary
         $0.layer.cornerRadius = 16
         $0.isUserInteractionEnabled = true
+        $0.isExclusiveTouch = true
     }
     
     let googleStackView = UIStackView().then {
@@ -58,6 +59,7 @@ class LoginViewController: UIViewController {
         $0.backgroundColor = UIColor.fill.secondary
         $0.layer.cornerRadius = 16
         $0.isUserInteractionEnabled = true
+        $0.isExclusiveTouch = true
     }
     
     let appleStackView = UIStackView().then {

@@ -26,6 +26,7 @@ class MyRoutineViewController: UIViewController {
     private let backBtn = UIButton().then {
         $0.setImage(UIImage(named: "back"), for: .normal)
         $0.addTarget(self, action: #selector(moveToBackPage), for: .touchUpInside)
+        $0.isExclusiveTouch = true
     }
     
     private let titleLabel = UILabel().then {

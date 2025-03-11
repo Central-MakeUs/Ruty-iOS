@@ -63,6 +63,7 @@ class OnBoardingMainViewController: UIViewController {
         $0.setTitle("완료", for: .normal)
         $0.titleLabel?.font = UIFont(name: Font.semiBold.rawValue, size: 16)
         $0.setTitleColor(.white, for: .normal)
+        $0.isExclusiveTouch = true
     }
     
     private let tableView = UITableView().then {

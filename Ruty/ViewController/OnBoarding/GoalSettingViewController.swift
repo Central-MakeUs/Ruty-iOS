@@ -41,6 +41,7 @@ class GoalSettingViewController: UIViewController {
     let backBtn = UIButton().then {
         $0.setImage(UIImage(named: "back"), for: .normal)
         $0.addTarget(self, action: #selector(goBack), for: .touchUpInside)
+        $0.isExclusiveTouch = true
     }
     
     let titleLabel = UILabel().then {
@@ -188,6 +189,7 @@ class GoalSettingViewController: UIViewController {
         $0.titleLabel?.font = UIFont(name: Font.semiBold.rawValue, size: 16)
         $0.setTitleColor(.white, for: .normal)
         $0.addTarget(self, action: #selector(tapCompleteBtn), for: .touchUpInside)
+        $0.isExclusiveTouch = true
     }
     
     

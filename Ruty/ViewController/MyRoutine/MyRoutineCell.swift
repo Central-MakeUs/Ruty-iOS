@@ -85,6 +85,7 @@ class MyRoutineCell: UITableViewCell {
         $0.setTitleColor(.white, for: .normal)
         $0.titleLabel?.font = UIFont(name: Font.semiBold.rawValue, size: 16)
         $0.addTarget(self, action: #selector(tapShowRoutineInfoBtn), for: .touchUpInside)
+        $0.isExclusiveTouch = true
     }
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {

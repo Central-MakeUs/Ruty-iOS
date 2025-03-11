@@ -75,6 +75,7 @@ class RoutineViewController: UIViewController {
         $0.titleLabel?.font = UIFont(name: Font.semiBold.rawValue, size: 16)
         $0.setTitleColor(.white, for: .normal)
         $0.addTarget(self, action: #selector(tapMoveToMainBtn), for: .touchUpInside)
+        $0.isExclusiveTouch = true
     }
     
     private let categoryType = ["주거", "소비", "여가생활", "자기관리"]

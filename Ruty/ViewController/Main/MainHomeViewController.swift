@@ -78,6 +78,7 @@ class MainHomeViewController: UIViewController {
         $0.backgroundColor = UIColor.fill.primary
         $0.layer.cornerRadius = 16
         $0.isUserInteractionEnabled = true
+        $0.isExclusiveTouch = true
     }
     
     let addRoutineStackView = UIStackView().then {
@@ -107,6 +108,7 @@ class MainHomeViewController: UIViewController {
         $0.titleLabel?.font = UIFont(name: Font.semiBold.rawValue, size: 16)
         $0.setTitleColor(UIColor.font.primary, for: .normal)
         $0.addTarget(self, action: #selector(tapRecommendRoutineBtn), for: .touchUpInside)
+        $0.isExclusiveTouch = true
     }
     
     private let myRoutineBtn = UIButton().then {
@@ -116,6 +118,7 @@ class MainHomeViewController: UIViewController {
         $0.titleLabel?.font = UIFont(name: Font.semiBold.rawValue, size: 16)
         $0.setTitleColor(UIColor.font.primary, for: .normal)
         $0.addTarget(self, action: #selector(tapMyRoutineBtn), for: .touchUpInside)
+        $0.isExclusiveTouch = true
     }
     
     let deleteBtn = UIButton().then {
@@ -125,6 +128,7 @@ class MainHomeViewController: UIViewController {
         $0.setTitleColor(UIColor.font.tertiary, for: .normal)
         $0.titleLabel?.font = UIFont(name: Font.semiBold.rawValue, size: 16)
         $0.addTarget(self, action: #selector(tapDeleteBtn), for: .touchUpInside)
+        $0.isExclusiveTouch = true
     }
     
     // 카테고리 데이터
