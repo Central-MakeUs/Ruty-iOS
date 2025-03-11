@@ -115,6 +115,10 @@ class MyRoutineViewController: UIViewController {
         self.updateContentViewHeight()
     }
     
+    deinit {
+        print("MyRoutineViewController deinitialized")
+    }
+    
     // MARK: - API 요청
     
     func updateData() {

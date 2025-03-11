@@ -217,6 +217,10 @@ class RoutineInfoViewController: UIViewController {
         }
     }
     
+    deinit {
+        print("RoutineInfoViewController deinitialized")
+    }
+    
     // MARK: - API
     func requestLoadRoutineHistory(year: Int, month: Int, onColpleted: @escaping (Bool) -> ()) {
         guard let id = routineID else { return }

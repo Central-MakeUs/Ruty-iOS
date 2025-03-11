@@ -219,6 +219,10 @@ class GoalSettingViewController: UIViewController {
         self.updateContentViewHeight()
     }
     
+    deinit {
+        print("GoalSettingViewController deinitialized")
+    }
+    
     func setGesture() {
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
         tapGesture.cancelsTouchesInView = false  // 다른 터치 이벤트에도 영향을 주지 않도록 설정

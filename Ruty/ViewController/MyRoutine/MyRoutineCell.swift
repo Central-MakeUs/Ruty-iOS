@@ -10,7 +10,8 @@ import Alamofire
 
 class MyRoutineCell: UITableViewCell {
 
-    var preViewController : UIViewController?
+    // 메모리 해제 시 이전 뷰 컨트롤러 참조 끊어내기 위해 약한 참조로 설정
+    weak var preViewController : UIViewController?
     
     static let identifier = "MyRoutineCell"
     private var id: Int?

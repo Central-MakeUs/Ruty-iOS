@@ -176,6 +176,10 @@ class SignUpAgreeViewController: UIViewController {
         navigationController?.setNavigationBarHidden(true, animated: false)
     }
 
+    deinit {
+        print("SignUpAgreeViewController deinitialized")
+    }
+    
     func addTargetToLabel() {
         setLinkToLabel(label: agreeRequiredDescription, textToLink: "이용약관")
         setLinkToLabel(label: agreeOptionalDescription, textToLink: "마케팅 활용 및 광고성 정보 수신 동의")

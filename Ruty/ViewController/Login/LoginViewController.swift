@@ -14,7 +14,6 @@ import AuthenticationServices
 
 class LoginViewController: UIViewController {
     static let shared = LoginViewController()
-    var splashVC : SplashViewController?
     
     var isRecommendDataExist : Bool?
     var isRoutineDataExist : Bool?
@@ -117,23 +116,8 @@ class LoginViewController: UIViewController {
         isTappedLogin = false
     }
     
-    override func viewDidAppear(_ animated: Bool) {
-        
-        // 디버깅 안할땐 주석처리 필수
-        //        let secondVC = RoutineViewController()
-        //        secondVC.modalPresentationStyle = .fullScreen
-        //        self.present(secondVC, animated: true, completion: nil)
-        
-        // 메인 뷰 디버깅
-        // 디버깅 안할땐 주석처리 필수
-//        let dVC = MainHomeViewController()
-//        let newNavController = UINavigationController(rootViewController: dVC) // 새로운 네비게이션 컨트롤러 생성
-//        newNavController.modalPresentationStyle = .fullScreen
-//        
-//        DispatchQueue.main.async {
-//            self.view.window?.rootViewController = newNavController
-//            self.view.window?.makeKeyAndVisible()
-//        }
+    deinit {
+        print("LoginViewController deinitialized")
     }
     
     func setLayout() {
@@ -183,12 +167,6 @@ class LoginViewController: UIViewController {
         self.appleLoginLabelLogo.snp.makeConstraints({
             $0.height.width.equalTo(20)
         })
-        
-//        self.guestLoginBtn.snp.makeConstraints({
-//            $0.bottom.equalTo(view.safeAreaLayoutGuide).offset(-20)
-//            $0.leading.trailing.equalToSuperview().inset(20)
-//            $0.height.equalTo(48)
-//        })
     }
 
     @objc func tapGoogleLoginBtn(_ sender: UIButton) {
@@ -331,43 +309,6 @@ class LoginViewController: UIViewController {
         }
     }
     
-    func moveToOnBoarding() {
-        let url = NetworkManager.shared.getRequestURL(api: "/api/goal")
-        NetworkManager.shared.requestAPI(url: url, method: .get, encoding: URLEncoding.default, param: nil) { result in
-            
-            switch result {
-            case .success(let data):
-                do {
-                    let decodedResponse = try JSONDecoder().decode(JSONModel.AllGoal.self, from: data)
-                    if decodedResponse.message == "ok" {
-                        
-                        let secondVC = OnBoardingMainViewController()
-                        secondVC.goalData = decodedResponse
-                        secondVC.modalPresentationStyle = .fullScreen
-                        
-                        if self.splashVC != nil {
-                            self.splashVC!.present(secondVC, animated: true)
-                        }
-                        else {
-                            self.present(secondVC, animated: true)
-                        }
-                    }
-                    else {
-                        print("서버 연결 오류")
-                        ErrorViewController.showErrorPage(viewController: self)
-                    }
-                } catch {
-                    print("JSON 디코딩 오류: \(error)")
-                    ErrorViewController.showErrorPage(viewController: self)
-                }
-            case .failure(let error):
-                // 요청이 실패한 경우
-                print("API 요청 실패: \(error.localizedDescription)")
-                ErrorViewController.showErrorPage(viewController: self)
-            }
-        }
-    }
-    
     func moveToSignUp() {
         let secondVC = SignUpAgreeViewController()
         secondVC.modalPresentationStyle = .fullScreen
@@ -376,28 +317,14 @@ class LoginViewController: UIViewController {
         let navigationController = UINavigationController(rootViewController: secondVC)
         navigationController.modalPresentationStyle = .fullScreen
         self.present(navigationController, animated: true, completion: nil)
-        
-        if self.splashVC != nil {
-            self.splashVC!.present(navigationController, animated: true)
-        }
-        else {
-            self.present(navigationController, animated: true, completion: nil)
-        }
     }
     
     func moveToMainView() {
         let nextVC = MainHomeViewController()
         let newNavController = UINavigationController(rootViewController: nextVC)
         newNavController.modalPresentationStyle = .fullScreen
-        
-        if self.splashVC != nil {
-            self.splashVC!.view.window?.rootViewController = newNavController
-            self.splashVC!.view.window?.makeKeyAndVisible()
-        }
-        else {
-            self.view.window?.rootViewController = newNavController
-            self.view.window?.makeKeyAndVisible()
-        }
+        self.view.window?.rootViewController = newNavController
+        self.view.window?.makeKeyAndVisible()
     }
 }
 

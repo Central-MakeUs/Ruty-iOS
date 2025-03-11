@@ -140,6 +140,10 @@ class RoutineViewController: UIViewController {
         self.updateContentViewHeight()
     }
     
+    deinit {
+        print("RoutineViewController deinitialized")
+    }
+    
     // MARK: - 카테고리 관련 함수
     
     // 처음 0번째 카테고리 셀을 선택된 상태로 설정

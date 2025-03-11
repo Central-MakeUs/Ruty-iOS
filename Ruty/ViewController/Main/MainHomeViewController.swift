@@ -169,6 +169,10 @@ class MainHomeViewController: UIViewController {
         self.updateContentViewHeight()
     }
     
+    deinit {
+        print("MainHomeViewController deinitialized")
+    }
+    
     // MARK: - api 요청
     
     func requestUserInfo() {

@@ -154,6 +154,10 @@ class SignUpWriteNameViewController: UIViewController {
         isTappedNextPage = false
     }
 
+    deinit {
+        print("SignUpWriteNameViewController deinitialized")
+    }
+    
     func requestSignUp() {
         let url = NetworkManager.shared.getRequestURL(api: "/api/member/sign")
         let param = JSONModel.SingIn(nickName: textField.text!, isAgree: isAgree)
