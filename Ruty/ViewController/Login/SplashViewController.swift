@@ -25,9 +25,6 @@ class SplashViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        print("스플래시 뷰 로드")
-        
-        
         setLayout()
     }
     
@@ -139,8 +136,6 @@ class SplashViewController: UIViewController {
                     if decodedResponse.message == "ok" {
                         UserDefaults.standard.set(decodedResponse.data.accessToken, forKey: "accessToken")
                         UserDefaults.standard.set(decodedResponse.data.refreshToken, forKey: "refreshToken")
-                        //LoginViewController.shared.splashVC = self
-                        //LoginViewController.shared.loadMemberAgree()
                         
                         RoutineDataProvider.shared.isRecommendedEver { isExist in
                             self.isRecommendDataExist = isExist
@@ -181,5 +176,4 @@ class SplashViewController: UIViewController {
             $0.height.equalTo(34.47)
         }
     }
-    
 }

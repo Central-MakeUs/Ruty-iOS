@@ -337,7 +337,7 @@ class GoalSettingViewController: UIViewController {
     // 최대 글자 수 초과 시 마지막 글자 삭제
     @objc func textFieldDidChange(_ textField: UITextField) {
         let text = textField.text ?? ""
-        let characterCount = text.countText()
+        let characterCount = text.count
         currentCountLabel.text = "\(characterCount)"
     
         if characterCount > maxTextCount {
@@ -362,7 +362,7 @@ class GoalSettingViewController: UIViewController {
         
         // 기본적으로 정해지는 루틴 이름 글자수 표기
         let text = textField.text ?? ""
-        let characterCount = text.countText()
+        let characterCount = text.count
         currentCountLabel.text = "\(characterCount)"
     }
     
@@ -661,23 +661,6 @@ extension GoalSettingViewController: UITextFieldDelegate {
     // 완료버튼 누를시 키보드 내려감
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         textField.resignFirstResponder()
-        return true
-    }
-    
-    // 한글자 입력/제거 할때마다 호출
-    func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
-        
-        // 최대 글자수 도달하더라도 backspace는 허용
-        if let char = string.cString(using: String.Encoding.utf8) {
-            let isBackSpace = strcmp(char, "\\b")
-            if isBackSpace == -92 {
-                return true
-            }
-        }
-        
-        let text = textField.text ?? ""
-        let textCount = text.countText()
-
         return true
     }
 }

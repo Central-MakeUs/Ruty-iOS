@@ -14,7 +14,7 @@ class LoadingViewController: UIViewController {
     let rotatingView = UIView() // 회전할 뷰
     let rotatingBackgroundView = UIView() // 회전할 뷰의 배경
     
-    var shapeLayer = CAShapeLayer()
+   
     let size: CGFloat = 72
     
     let nicknameLabel = UILabel().then {
@@ -49,12 +49,11 @@ class LoadingViewController: UIViewController {
         super.viewDidLoad()
         self.view.backgroundColor = .white
         
-        
         nicknameLabel.text! += "님의"
         setLayout()
         
-        // 로딩 뷰 설정
-        setupRotatingView()
+        setupRotatingView() // 로딩 뷰 설정
+        setupRotatingBackgroundView() // 로딩 배경 뷰 설정
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -63,12 +62,6 @@ class LoadingViewController: UIViewController {
         // 스와이프 뒤로 가기 제스처 비활성화
         navigationController?.interactivePopGestureRecognizer?.delegate = self
         navigationController?.interactivePopGestureRecognizer?.isEnabled = false
-    }
-    
-    // 오토레이아웃의 모든 제약 조건을 계산하고 뷰의 크기와 위치를 확정한 후 호출 되는 함수
-    override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
-        setRotatingViewRoutine()
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -86,18 +79,12 @@ class LoadingViewController: UIViewController {
         RoutineDataProvider.shared.startloadAIData { isLoad in
             if isLoad {
                 DispatchQueue.main.async {
-                    // 생성 완료되면 다음 페이지로 이동
-//                    let secondVC = RoutineViewController()
-//                    secondVC.modalPresentationStyle = .fullScreen
-//                    self.navigationController?.setViewControllers([secondVC], animated: true)
                     print("루트 생성 성공")
                     let nextVC = RoutineViewController()
                     let newNavController = UINavigationController(rootViewController: nextVC)
                     newNavController.modalPresentationStyle = .fullScreen
-                    DispatchQueue.main.async { // Dispatch는 빼도 되긴할듯
-                         self.view.window?.rootViewController = newNavController
-                         self.view.window?.makeKeyAndVisible()
-                    }
+                    self.view.window?.rootViewController = newNavController
+                    self.view.window?.makeKeyAndVisible()
                 }
             }
             // 로드 실패시 3회까지 재시도
@@ -113,44 +100,40 @@ class LoadingViewController: UIViewController {
         }
     }
     
-    // 로딩 view 구현
+    // 로딩뷰(움직이는 로딩 뷰) 구현
     private func setupRotatingView() {
-        // 로딩 바의 위치 설정
-        rotatingView.layer.addSublayer(shapeLayer)
-        rotatingView.layer.anchorPoint = CGPoint(x: 0.5, y: 0.5) // 중심점 고정
-        
-        // 로딩 바 배경의 크기 및 위치 설정
-        let shapeLayerBackground = CAShapeLayer()
-        let circularPathBackground = UIBezierPath(arcCenter: CGPoint(x: size / 2, y: size / 2),
-                                                  radius: size / 2,
-                                                  startAngle: 0,
-                                                  endAngle: .pi * 2,
-                                                  clockwise: true)
-        
-        shapeLayerBackground.path = circularPathBackground.cgPath
-        shapeLayerBackground.strokeColor = UIColor(224, 231, 255, 1).cgColor
-        shapeLayerBackground.fillColor = UIColor.clear.cgColor
-        shapeLayerBackground.lineWidth = 10
-        shapeLayerBackground.lineCap = .round
-        rotatingBackgroundView.layer.addSublayer(shapeLayerBackground)
-    }
-    
-    // 로딩뷰(움직이는 로딩 뷰) 경로 설정
-    // 오토레이아웃이 모두 설정되고 나서 로딩 뷰의 경로를 정해줘야 정확한 위치 경로를 나타낼 수 있음
-    private func setRotatingViewRoutine() {
+        let shapeLayer = CAShapeLayer()
         let circularPath = UIBezierPath(
-            arcCenter: CGPoint(x: size / 2, y: size / 2), // 중심점 계산
-            radius: size / 2,               // 반지름 계산
+            arcCenter: CGPoint(x: size / 2, y: size / 2),
+            radius: size / 2,
             startAngle: 0,
             endAngle: .pi / 2,
             clockwise: true
         )
-        
         shapeLayer.path = circularPath.cgPath
         shapeLayer.strokeColor = UIColor(99, 102, 241, 1).cgColor
-        shapeLayer.fillColor = UIColor.clear.cgColor//UIColor(99, 102, 241, 1).cgColor
+        shapeLayer.fillColor = UIColor.clear.cgColor
         shapeLayer.lineWidth = 10
         shapeLayer.lineCap = .round
+        rotatingView.layer.addSublayer(shapeLayer)
+    }
+    
+    // 로딩 바 배경 설정
+    private func setupRotatingBackgroundView() {
+        let shapeLayer = CAShapeLayer()
+        let circularPath = UIBezierPath(
+            arcCenter: CGPoint(x: size / 2, y: size / 2),
+            radius: size / 2,
+            startAngle: 0,
+            endAngle: .pi * 2,
+            clockwise: true)
+        
+        shapeLayer.path = circularPath.cgPath
+        shapeLayer.strokeColor = UIColor(224, 231, 255, 1).cgColor
+        shapeLayer.fillColor = UIColor.clear.cgColor
+        shapeLayer.lineWidth = 10
+        shapeLayer.lineCap = .round
+        rotatingBackgroundView.layer.addSublayer(shapeLayer)
     }
     
     // 로딩 view 무한 애니메이션 설정

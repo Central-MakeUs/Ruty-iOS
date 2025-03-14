@@ -16,14 +16,6 @@ extension UITextField {
     }
 }
 
-extension String {
-    // 글자수 반환
-    func countText() -> Int {
-        // 한글의 자음, 모음 방식을 계산하기 위해 그래픽 단위로 계산
-        return self.precomposedStringWithCanonicalMapping.count
-    }
-}
-
 extension UIColor {
     convenience init(red: Int, green: Int, blue: Int, alpha: CGFloat = 1.0) {
         self.init(
