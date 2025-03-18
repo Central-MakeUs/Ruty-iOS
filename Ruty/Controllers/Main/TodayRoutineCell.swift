@@ -74,7 +74,6 @@ class TodayRoutineCell: UITableViewCell {
         
         cellBlock.snp.makeConstraints {
             $0.left.right.equalToSuperview().inset(20)
-            $0.height.equalTo(64)
             $0.bottom.equalToSuperview().inset(16)
             $0.top.equalToSuperview()
         }

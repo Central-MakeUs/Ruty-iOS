@@ -609,7 +609,6 @@ class MainHomeViewController: UIViewController {
             $0.top.equalTo(tableViewTopView.snp.bottom)
             $0.left.right.equalToSuperview()
             $0.bottom.equalToSuperview()
-            $0.height.equalTo(500)
         }
         
         self.addRoutineView.snp.makeConstraints{
@@ -650,7 +649,6 @@ class MainHomeViewController: UIViewController {
             $0.top.bottom.equalToSuperview().inset(16)
             $0.left.equalToSuperview().inset(6)
             $0.right.equalToSuperview().inset(6)
-            $0.height.equalTo(120)
         }
     }
     
