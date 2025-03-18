@@ -7,9 +7,9 @@
 
 import UIKit
 
-class ImproveSelectTableViewCell: UITableViewCell {
+class ImproveSelectCell: UITableViewCell {
     
-    static let identifier = "ImproveSelectTableViewCell"
+    static let identifier = "ImproveSelectCell"
     
     let cellBlock = UIView().then {
         $0.backgroundColor = .white

@@ -234,7 +234,7 @@ class OnBoardingMainViewController: UIViewController {
         for row in 0..<tableView.numberOfRows(inSection: 0) {
             let indexPath = IndexPath(row: row, section: 0)
             
-            guard let cell = tableView.cellForRow(at: indexPath) as? ImproveSelectTableViewCell else { return "null" }
+            guard let cell = tableView.cellForRow(at: indexPath) as? ImproveSelectCell else { return "null" }
             
             if cell.isChecked == true {
                 if prompt == "" {
@@ -255,7 +255,7 @@ class OnBoardingMainViewController: UIViewController {
         tableView.delegate = self
         tableView.dataSource = self
         tableView.separatorStyle = .none // cell 라인 없애기
-        tableView.register(ImproveSelectTableViewCell.self, forCellReuseIdentifier: ImproveSelectTableViewCell.identifier)
+        tableView.register(ImproveSelectCell.self, forCellReuseIdentifier: ImproveSelectCell.identifier)
     }
 }
 
@@ -267,7 +267,7 @@ extension OnBoardingMainViewController : UITableViewDelegate, UITableViewDataSou
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        guard let cell = tableView.dequeueReusableCell(withIdentifier: ImproveSelectTableViewCell.identifier, for: indexPath) as? ImproveSelectTableViewCell, let goalData = goalData else {
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: ImproveSelectCell.identifier, for: indexPath) as? ImproveSelectCell, let goalData = goalData else {
             return UITableViewCell()
         }
 
@@ -287,7 +287,7 @@ extension OnBoardingMainViewController : UITableViewDelegate, UITableViewDataSou
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         
         // 클릭한 cell 에 접근
-        if let selectedCell = tableView.cellForRow(at: indexPath) as? ImproveSelectTableViewCell {
+        if let selectedCell = tableView.cellForRow(at: indexPath) as? ImproveSelectCell {
             selectedCell.tapCell()
         }
         
@@ -313,7 +313,7 @@ extension OnBoardingMainViewController : UITableViewDelegate, UITableViewDataSou
         
         // 모든 셀 순회
         for visibleIndexPath in tableView.indexPathsForVisibleRows ?? [] {
-            if let cell = tableView.cellForRow(at: visibleIndexPath) as? ImproveSelectTableViewCell {
+            if let cell = tableView.cellForRow(at: visibleIndexPath) as? ImproveSelectCell {
                 if cell.isChecked == true { selectedCnt += 1 }
             }
         }

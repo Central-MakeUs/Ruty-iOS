@@ -7,7 +7,7 @@
 
 import UIKit
 
-class RoutineCellTableViewCell: UITableViewCell {
+class RoutineCell: UITableViewCell {
 
     var isAdd = false {
         didSet {
@@ -26,7 +26,7 @@ class RoutineCellTableViewCell: UITableViewCell {
         }
     }
     
-    static let identifier = "RoutineCellTableViewCell"
+    static let identifier = "RoutineCell"
     
     private var id: Int?
     

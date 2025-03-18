@@ -281,7 +281,7 @@ class RoutineViewController: UIViewController {
         tableView.delegate = self
         tableView.dataSource = self
         tableView.separatorStyle = .none // cell 라인 없애기
-        tableView.register(RoutineCellTableViewCell.self, forCellReuseIdentifier: RoutineCellTableViewCell.identifier)
+        tableView.register(RoutineCell.self, forCellReuseIdentifier: RoutineCell.identifier)
     }
     
     func setUI() {
@@ -365,7 +365,7 @@ extension RoutineViewController : UITableViewDelegate, UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        guard let cell = tableView.dequeueReusableCell(withIdentifier: RoutineCellTableViewCell.identifier, for: indexPath) as? RoutineCellTableViewCell else {
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: RoutineCell.identifier, for: indexPath) as? RoutineCell else {
             return UITableViewCell()
         }
         let item = routinesData[selectedCategoryIndex][indexPath.row]
