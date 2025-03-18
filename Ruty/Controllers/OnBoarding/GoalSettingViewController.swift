@@ -155,6 +155,14 @@ class GoalSettingViewController: UIViewController {
         $0.numberOfLines = 0
     }
     
+    let termLabel = UILabel().then {
+        $0.text = "1개월"
+        $0.textColor = UIColor.font.secondary
+        $0.textAlignment = .right
+        $0.font = UIFont(name: Font.semiBold.rawValue, size: 14)
+        $0.numberOfLines = 0
+    }
+    
     let slider = UISlider().then {
         $0.value = 2
         $0.minimumValue = 1
@@ -191,8 +199,6 @@ class GoalSettingViewController: UIViewController {
         $0.addTarget(self, action: #selector(tapCompleteBtn), for: .touchUpInside)
         $0.isExclusiveTouch = true
     }
-    
-    
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -324,6 +330,8 @@ class GoalSettingViewController: UIViewController {
         if sender.value <= 2.0 {
             sender.value = 2
         }
+        
+        termLabel.text = "\(Int(sender.value - 1))개월"
         
         if vibrationValue != Double(roundedValue) {
             vibrationValue = Double(roundedValue)
@@ -543,7 +551,7 @@ class GoalSettingViewController: UIViewController {
     func setLayout() {
         [contentScrollView].forEach({ view.addSubview($0) })
         [contentView].forEach({ contentScrollView.addSubview($0) })
-        [backBtn, textField, helperLabel, maxCountLabel, currentCountLabel, daySetTitleLabel, daySetDescriptionLabel, dayStackView, termSetTitleLabel, termSetDescriptionLabel, slider, sliderStartLabel, sliderEndLabel, completeBtn].forEach({ contentView.addSubview($0) })
+        [backBtn, textField, helperLabel, maxCountLabel, currentCountLabel, daySetTitleLabel, daySetDescriptionLabel, dayStackView, termSetTitleLabel, termSetDescriptionLabel, termLabel, slider, sliderStartLabel, sliderEndLabel, completeBtn].forEach({ contentView.addSubview($0) })
         
         if !isRecommendedData {
             [titleLabel, descriptionLabel, categoryCollectionView].forEach({ contentView.addSubview($0) })
@@ -630,6 +638,11 @@ class GoalSettingViewController: UIViewController {
         }
         
         self.termSetDescriptionLabel.snp.makeConstraints {
+            $0.top.equalTo(termSetTitleLabel.snp.bottom).offset(8)
+            $0.right.left.equalToSuperview().inset(20)
+        }
+        
+        self.termLabel.snp.makeConstraints {
             $0.top.equalTo(termSetTitleLabel.snp.bottom).offset(8)
             $0.right.left.equalToSuperview().inset(20)
         }
