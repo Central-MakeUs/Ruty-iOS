@@ -22,9 +22,10 @@ class TodayRoutineCell: UITableViewCell {
     }
     
     let content = UILabel().then {
-        $0.font = UIFont.systemFont(ofSize: 16, weight: .bold)
+        $0.font = UIFont(name: Font.semiBold.rawValue, size: 14)
         $0.textColor = .black
         $0.backgroundColor = .clear
+        $0.numberOfLines = 0
     }
     
     let image = UIImageView().then {
@@ -79,19 +80,21 @@ class TodayRoutineCell: UITableViewCell {
         }
         
         image.snp.makeConstraints {
-            $0.leading.equalToSuperview().inset(16)
-            $0.top.bottom.equalToSuperview().inset(20)
+            $0.left.equalToSuperview().inset(16)
+            $0.centerY.equalToSuperview()
             $0.height.width.equalTo(24)
         }
         
         content.snp.makeConstraints {
             $0.left.equalTo(image.snp.right).offset(8)
+            $0.right.equalTo(checkImage.snp.left).offset(-12)
             $0.centerY.equalToSuperview()
         }
         
         checkImage.snp.makeConstraints {
             $0.right.equalToSuperview().inset(16)
             $0.centerY.equalToSuperview()
+            $0.height.width.equalTo(20)
         }
     }
     

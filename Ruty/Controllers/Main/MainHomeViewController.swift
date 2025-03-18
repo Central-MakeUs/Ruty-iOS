@@ -665,6 +665,13 @@ class MainHomeViewController: UIViewController {
         self.view.window?.rootViewController = nextVC
         self.view.window?.makeKeyAndVisible()
     }
+    
+    // label의 rowNumber 에 따른 cellBlock의 height 반환
+    private func estimateTextHeight(text: String, width: CGFloat, font: UIFont) -> CGFloat {
+        let constraintRect = CGSize(width: width, height: .greatestFiniteMagnitude)
+        let boundingBox = text.boundingRect(with: constraintRect, options: .usesLineFragmentOrigin, attributes: [.font: font], context: nil)
+        return ceil(boundingBox.height)
+    }
 }
 
 extension MainHomeViewController : UITableViewDelegate, UITableViewDataSource {
@@ -712,6 +719,14 @@ extension MainHomeViewController : UITableViewDelegate, UITableViewDataSource {
             }
         }
         tableView.deselectRow(at: indexPath, animated: true)
+    }
+    
+    // cell 높이 동적으로 조절
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        let item = showTodayRoutineData[indexPath.row]
+        
+        let newHeight = estimateTextHeight(text: item.title, width: tableView.frame.width - 40, font: UIFont(name: Font.semiBold.rawValue, size: 14)!)
+        return newHeight + 55 // 기본 마진 추가
     }
 }
 
