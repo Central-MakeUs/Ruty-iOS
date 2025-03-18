@@ -14,7 +14,6 @@ import AuthenticationServices
 
 class LoginViewController: UIViewController {
     static let shared = LoginViewController()
-    var splashVC : SplashViewController?
     
     var isRecommendDataExist : Bool?
     var isRoutineDataExist : Bool?
@@ -33,6 +32,7 @@ class LoginViewController: UIViewController {
         $0.backgroundColor = UIColor.fill.secondary
         $0.layer.cornerRadius = 16
         $0.isUserInteractionEnabled = true
+        $0.isExclusiveTouch = true
     }
     
     let googleStackView = UIStackView().then {
@@ -59,6 +59,7 @@ class LoginViewController: UIViewController {
         $0.backgroundColor = UIColor.fill.secondary
         $0.layer.cornerRadius = 16
         $0.isUserInteractionEnabled = true
+        $0.isExclusiveTouch = true
     }
     
     let appleStackView = UIStackView().then {
@@ -98,6 +99,8 @@ class LoginViewController: UIViewController {
         $0.addTarget(self, action: #selector(tapGuestLoginButn), for: .touchUpInside)
     }
 
+    var isTappedLogin = false
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         self.view.backgroundColor = .black
@@ -111,23 +114,12 @@ class LoginViewController: UIViewController {
         appleLoginView.addGestureRecognizer(appleTapGesture)
     }
     
-    override func viewDidAppear(_ animated: Bool) {
-        
-        // 디버깅 안할땐 주석처리 필수
-        //        let secondVC = RoutineViewController()
-        //        secondVC.modalPresentationStyle = .fullScreen
-        //        self.present(secondVC, animated: true, completion: nil)
-        
-        // 메인 뷰 디버깅
-        // 디버깅 안할땐 주석처리 필수
-//        let dVC = MainHomeViewController()
-//        let newNavController = UINavigationController(rootViewController: dVC) // 새로운 네비게이션 컨트롤러 생성
-//        newNavController.modalPresentationStyle = .fullScreen
-//        
-//        DispatchQueue.main.async {
-//            self.view.window?.rootViewController = newNavController
-//            self.view.window?.makeKeyAndVisible()
-//        }
+    override func viewWillAppear(_ animated: Bool) {
+        isTappedLogin = false
+    }
+    
+    deinit {
+        print("LoginViewController deinitialized")
     }
     
     func setLayout() {
@@ -177,18 +169,17 @@ class LoginViewController: UIViewController {
         self.appleLoginLabelLogo.snp.makeConstraints({
             $0.height.width.equalTo(20)
         })
-        
-//        self.guestLoginBtn.snp.makeConstraints({
-//            $0.bottom.equalTo(view.safeAreaLayoutGuide).offset(-20)
-//            $0.leading.trailing.equalToSuperview().inset(20)
-//            $0.height.equalTo(48)
-//        })
     }
 
     @objc func tapGoogleLoginBtn(_ sender: UIButton) {
+        guard !isTappedLogin else { return }
+        
         // SDK 로그인 방식
         GIDSignIn.sharedInstance.signIn(withPresenting: self) { signInResult, error in
             guard error == nil else { return }
+            
+            // 로그인 성공 후 로그인 버튼 여러번 클릭 막음
+            self.isTappedLogin = true
             
             let user = signInResult?.user
             let idToken = user?.idToken?.tokenString
@@ -237,6 +228,8 @@ class LoginViewController: UIViewController {
     }
     
     @objc func tapAppleLoginBtn(_ sender: UIButton) {
+        guard !isTappedLogin else { return }
+        
         // SDK 로그인 방식
         let provider = ASAuthorizationAppleIDProvider()
         let requset = provider.createRequest()
@@ -270,10 +263,10 @@ class LoginViewController: UIViewController {
                         
                         RoutineDataProvider.shared.isRecommendedEver { isExist in
                             self.isRecommendDataExist = isExist
-                            if self.isRoutineDataExist != nil { self.controlToOnboardingOrMain() }
+                            if self.isRoutineDataExist != nil { self.controlToSignUpOrMain() }
                         } routineCompletion: { isExist in
                             self.isRoutineDataExist = isExist
-                            if self.isRecommendDataExist != nil { self.controlToOnboardingOrMain() }
+                            if self.isRecommendDataExist != nil { self.controlToSignUpOrMain() }
                         }
                     }
                 } catch {
@@ -305,52 +298,16 @@ class LoginViewController: UIViewController {
         }
     }
     
-    func controlToOnboardingOrMain() {
+    func controlToSignUpOrMain() {
         guard let isRecommendDataExist = isRecommendDataExist, let isRoutineDataExist = isRoutineDataExist else { return }
         
         // 추천받은 루틴이 없는 경우 (회원가입 한 후 추천받지 않고 바로 앱 종료 한 경우)
+        // 회원가입부터 다시 시작하도록 함
         if !isRecommendDataExist && !isRoutineDataExist {
-            moveToOnBoarding()
+            moveToSignUp()
         }
         else {
             moveToMainView() // 메인화면으로 이동
-        }
-    }
-    
-    func moveToOnBoarding() {
-        let url = NetworkManager.shared.getRequestURL(api: "/api/goal")
-        NetworkManager.shared.requestAPI(url: url, method: .get, encoding: URLEncoding.default, param: nil) { result in
-            
-            switch result {
-            case .success(let data):
-                do {
-                    let decodedResponse = try JSONDecoder().decode(JSONModel.AllGoal.self, from: data)
-                    if decodedResponse.message == "ok" {
-                        
-                        let secondVC = OnBoardingMainViewController()
-                        secondVC.goalData = decodedResponse
-                        secondVC.modalPresentationStyle = .fullScreen
-                        
-                        if self.splashVC != nil {
-                            self.splashVC!.present(secondVC, animated: true)
-                        }
-                        else {
-                            self.present(secondVC, animated: true)
-                        }
-                    }
-                    else {
-                        print("서버 연결 오류")
-                        ErrorViewController.showErrorPage(viewController: self)
-                    }
-                } catch {
-                    print("JSON 디코딩 오류: \(error)")
-                    ErrorViewController.showErrorPage(viewController: self)
-                }
-            case .failure(let error):
-                // 요청이 실패한 경우
-                print("API 요청 실패: \(error.localizedDescription)")
-                ErrorViewController.showErrorPage(viewController: self)
-            }
         }
     }
     
@@ -362,32 +319,14 @@ class LoginViewController: UIViewController {
         let navigationController = UINavigationController(rootViewController: secondVC)
         navigationController.modalPresentationStyle = .fullScreen
         self.present(navigationController, animated: true, completion: nil)
-        
-        if self.splashVC != nil {
-            self.splashVC!.present(navigationController, animated: true)
-        }
-        else {
-            self.present(navigationController, animated: true, completion: nil)
-        }
     }
     
     func moveToMainView() {
         let nextVC = MainHomeViewController()
         let newNavController = UINavigationController(rootViewController: nextVC)
         newNavController.modalPresentationStyle = .fullScreen
-//        DispatchQueue.main.async {
-//            self.view.window?.rootViewController = newNavController
-//            self.view.window?.makeKeyAndVisible()
-//        }
-        
-        if self.splashVC != nil {
-            self.splashVC!.view.window?.rootViewController = newNavController
-            self.splashVC!.view.window?.makeKeyAndVisible()
-        }
-        else {
-            self.view.window?.rootViewController = newNavController
-            self.view.window?.makeKeyAndVisible()
-        }
+        self.view.window?.rootViewController = newNavController
+        self.view.window?.makeKeyAndVisible()
     }
 }
 
@@ -414,6 +353,9 @@ extension LoginViewController: ASAuthorizationControllerDelegate {
                 guard let jsonData = try? JSONEncoder().encode(param),
                       var param = try? JSONSerialization.jsonObject(with: jsonData) as? [String: Any] else { return }
                 
+                // 로그인 성공 후 로그인 버튼 여러번 클릭 막음
+                self.isTappedLogin = true
+
                 UserDefaults.standard.set(authorizationCodeString, forKey: "authCode")
                 NetworkManager.shared.requestAPI(url: url, method: .post, encoding: JSONEncoding.default, param: param) { result in
                     switch result {

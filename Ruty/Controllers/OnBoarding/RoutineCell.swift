@@ -7,7 +7,7 @@
 
 import UIKit
 
-class RoutineCellTableViewCell: UITableViewCell {
+class RoutineCell: UITableViewCell {
 
     var isAdd = false {
         didSet {
@@ -26,7 +26,7 @@ class RoutineCellTableViewCell: UITableViewCell {
         }
     }
     
-    static let identifier = "RoutineCellTableViewCell"
+    static let identifier = "RoutineCell"
     
     private var id: Int?
     
@@ -62,6 +62,7 @@ class RoutineCellTableViewCell: UITableViewCell {
         $0.backgroundColor = UIColor(99, 102, 241, 1)
         $0.layer.cornerRadius = 12
         $0.isUserInteractionEnabled = true
+        $0.isExclusiveTouch = true
     }
     
     private let addRoutineBtnLabel = UILabel().then {

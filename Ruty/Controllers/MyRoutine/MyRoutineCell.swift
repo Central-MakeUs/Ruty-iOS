@@ -10,7 +10,8 @@ import Alamofire
 
 class MyRoutineCell: UITableViewCell {
 
-    var preViewController : UIViewController?
+    // 메모리 해제 시 이전 뷰 컨트롤러 참조 끊어내기 위해 약한 참조로 설정
+    weak var preViewController : UIViewController?
     
     static let identifier = "MyRoutineCell"
     private var id: Int?
@@ -84,6 +85,7 @@ class MyRoutineCell: UITableViewCell {
         $0.setTitleColor(.white, for: .normal)
         $0.titleLabel?.font = UIFont(name: Font.semiBold.rawValue, size: 16)
         $0.addTarget(self, action: #selector(tapShowRoutineInfoBtn), for: .touchUpInside)
+        $0.isExclusiveTouch = true
     }
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
@@ -199,7 +201,12 @@ class MyRoutineCell: UITableViewCell {
         }
     }
 
+    var isTappedShowRoutine = false
     @objc func tapShowRoutineInfoBtn() {
+        guard !isTappedShowRoutine else { return }
+        
+        isTappedShowRoutine = true
+        
         var isRoutineHistory = false
         var isRoutineProcess = false
         
@@ -248,11 +255,6 @@ class MyRoutineCell: UITableViewCell {
         guard let id = id else { return }
         print("id: \(id)")
         let url = NetworkManager.shared.getRequestURL(api: "/api/routine/history/\(id)")
-//        let param = JSONModel.RoutineHistory(routineId: id, year: 2025, month: 3) // 달력 임시 값
-//        
-//        guard let jsonData = try? JSONEncoder().encode(param),
-//              let param = try? JSONSerialization.jsonObject(with: jsonData) as? [String: Any] else { return }
-//
         
         let today = Date()
         let calendar = Calendar.current

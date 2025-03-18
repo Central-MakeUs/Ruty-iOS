@@ -23,6 +23,7 @@ class SignUpWriteNameViewController: UIViewController {
     
     let backBtn = UIButton().then {
         $0.setImage(UIImage(named: "back"), for: .normal)
+        $0.isExclusiveTouch = true
     }
     
     let titleLabel1 = UILabel().then {
@@ -53,21 +54,20 @@ class SignUpWriteNameViewController: UIViewController {
         $0.placeholder = "닉네임을 입력해 주세요"
         $0.attributedPlaceholder = NSAttributedString(
             string: "닉네임을 입력해 주세요",
-            attributes: [.foregroundColor: UIColor(156, 163, 175, 1)] // 원하는 색상 적용
+            attributes: [.foregroundColor: UIColor(156, 163, 175, 1)]
         )
         
         $0.textColor = .black
-        //$0.borderStyle = .roundedRect
         $0.backgroundColor = UIColor(243, 244, 246, 1)
         $0.layer.cornerRadius = 16
         $0.layer.borderWidth = 0
         
-        $0.autocorrectionType = .no                     // 자동 수정 활성화 여부
-        $0.spellCheckingType = .no                      // 맞춤법 검사 활성화 여부
-        $0.autocapitalizationType = .none               // 자동 대문자 활성화 여부
-        $0.clearButtonMode = .always                    // 입력내용 한번에 지우는 x버튼(오른쪽)
-        $0.clearsOnBeginEditing = false                 // 편집 시 기존 텍스트필드값 제거?
-        $0.returnKeyType = .done                        // 키보드 엔터키(return, done... )
+        $0.autocorrectionType = .no
+        $0.spellCheckingType = .no
+        $0.autocapitalizationType = .none
+        $0.clearButtonMode = .always
+        $0.clearsOnBeginEditing = false
+        $0.returnKeyType = .done
     }
     
     let nicknameDescription = UILabel().then {
@@ -100,6 +100,7 @@ class SignUpWriteNameViewController: UIViewController {
         $0.setTitle("다음으로", for: .normal)
         $0.titleLabel?.font = UIFont(name: Font.semiBold.rawValue, size: 16)
         $0.setTitleColor(.white, for: .normal)
+        $0.isExclusiveTouch = true
     }
     
     // 1 : 문자 하나라도 입력해야함
@@ -149,8 +150,15 @@ class SignUpWriteNameViewController: UIViewController {
         // 스와이프 뒤로 가기 제스처 다시 활성화
         navigationController?.interactivePopGestureRecognizer?.delegate = self
         navigationController?.interactivePopGestureRecognizer?.isEnabled = true
+        
+        // tap flag 초기화
+        isTappedNextPage = false
     }
 
+    deinit {
+        print("SignUpWriteNameViewController deinitialized")
+    }
+    
     func requestSignUp() {
         let url = NetworkManager.shared.getRequestURL(api: "/api/member/sign")
         let param = JSONModel.SingIn(nickName: textField.text!, isAgree: isAgree)
@@ -238,7 +246,7 @@ class SignUpWriteNameViewController: UIViewController {
     // 현재 텍스트에서 글자 수 계산
     @objc func textFieldDidChange(_ textField: UITextField) {
         let text = textField.text ?? ""
-        let characterCount = text.countText()
+        let characterCount = text.count
         currentCountLabel.text = "\(characterCount)"
         
         if characterCount == 0 {
@@ -256,13 +264,18 @@ class SignUpWriteNameViewController: UIViewController {
         }
     }
     
+    var isTappedNextPage = false
     @objc func tapNextPageBtn() {
         if let text = textField.text, text.first == " " {
             print("첫 입력으로 공백은 불가, 다음페이지로 이동 불가")
         }
         else if isNickNameCheckd == 2 || isNickNameCheckd == 3 {
             if DataManager.shared.isGuest! { moveToNextPage() }
-            else { requestSignUp() }
+            else {
+                guard !isTappedNextPage else { return }
+                isTappedNextPage = true
+                requestSignUp()
+            }
         }
         else {
             print("다음페이지로 이동 불가")
@@ -301,13 +314,11 @@ class SignUpWriteNameViewController: UIViewController {
                 ErrorViewController.showErrorPage(viewController: self)
             }
         }
-        
-       
     }
     
     func setTextField() {
         textField.delegate = self
-        textField.addLeftPadding() // textfield 왼쪽에 padding 추가
+        textField.addLeftPadding()
     }
 
     func setLayout() {
@@ -396,9 +407,6 @@ extension SignUpWriteNameViewController: UITextFieldDelegate {
                 return true
             }
         }
-        
-        let text = textField.text ?? ""
-        let textCount = text.countText()
         
         return true
     }
