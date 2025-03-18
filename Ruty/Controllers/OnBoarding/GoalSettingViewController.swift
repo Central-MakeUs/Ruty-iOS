@@ -41,6 +41,7 @@ class GoalSettingViewController: UIViewController {
     let backBtn = UIButton().then {
         $0.setImage(UIImage(named: "back"), for: .normal)
         $0.addTarget(self, action: #selector(goBack), for: .touchUpInside)
+        $0.isExclusiveTouch = true
     }
     
     let titleLabel = UILabel().then {
@@ -154,6 +155,14 @@ class GoalSettingViewController: UIViewController {
         $0.numberOfLines = 0
     }
     
+    let termLabel = UILabel().then {
+        $0.text = "1개월"
+        $0.textColor = UIColor.font.secondary
+        $0.textAlignment = .right
+        $0.font = UIFont(name: Font.semiBold.rawValue, size: 14)
+        $0.numberOfLines = 0
+    }
+    
     let slider = UISlider().then {
         $0.value = 2
         $0.minimumValue = 1
@@ -174,7 +183,7 @@ class GoalSettingViewController: UIViewController {
     }
     
     let sliderEndLabel = UILabel().then {
-        $0.text = "최소 6개월"
+        $0.text = "최대 6개월"
         $0.textColor = UIColor.font.secondary
         $0.textAlignment = .left
         $0.font = UIFont(name: Font.semiBold.rawValue, size: 14)
@@ -188,9 +197,8 @@ class GoalSettingViewController: UIViewController {
         $0.titleLabel?.font = UIFont(name: Font.semiBold.rawValue, size: 16)
         $0.setTitleColor(.white, for: .normal)
         $0.addTarget(self, action: #selector(tapCompleteBtn), for: .touchUpInside)
+        $0.isExclusiveTouch = true
     }
-    
-    
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -202,8 +210,6 @@ class GoalSettingViewController: UIViewController {
         addObserver()
         setTextField()
         selectFirstCategory()
-        
-
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -212,11 +218,17 @@ class GoalSettingViewController: UIViewController {
         // 스와이프 뒤로 가기 제스처 다시 활성화
         navigationController?.interactivePopGestureRecognizer?.delegate = self
         navigationController?.interactivePopGestureRecognizer?.isEnabled = true
+        
+        isTappedComplete = false
     }
     
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         self.updateContentViewHeight()
+    }
+    
+    deinit {
+        print("GoalSettingViewController deinitialized")
     }
     
     func setGesture() {
@@ -319,6 +331,8 @@ class GoalSettingViewController: UIViewController {
             sender.value = 2
         }
         
+        termLabel.text = "\(Int(sender.value - 1))개월"
+        
         if vibrationValue != Double(roundedValue) {
             vibrationValue = Double(roundedValue)
             let generator = UISelectionFeedbackGenerator()
@@ -331,7 +345,7 @@ class GoalSettingViewController: UIViewController {
     // 최대 글자 수 초과 시 마지막 글자 삭제
     @objc func textFieldDidChange(_ textField: UITextField) {
         let text = textField.text ?? ""
-        let characterCount = text.countText()
+        let characterCount = text.count
         currentCountLabel.text = "\(characterCount)"
     
         if characterCount > maxTextCount {
@@ -356,7 +370,7 @@ class GoalSettingViewController: UIViewController {
         
         // 기본적으로 정해지는 루틴 이름 글자수 표기
         let text = textField.text ?? ""
-        let characterCount = text.countText()
+        let characterCount = text.count
         currentCountLabel.text = "\(characterCount)"
     }
     
@@ -442,6 +456,7 @@ class GoalSettingViewController: UIViewController {
         }
     }
     
+    var isTappedComplete = false
     @objc func tapCompleteBtn() {
 
         if textField.text == "" {
@@ -467,6 +482,9 @@ class GoalSettingViewController: UIViewController {
             let title = textField.text ?? ""
             let description = routineDescription ?? ""
             let categoryText = category ?? "HOUSE"
+            
+            guard !isTappedComplete else { return }
+            isTappedComplete = true
             
             // 추천된 루틴 저장
             if isRecommendedData {
@@ -533,7 +551,7 @@ class GoalSettingViewController: UIViewController {
     func setLayout() {
         [contentScrollView].forEach({ view.addSubview($0) })
         [contentView].forEach({ contentScrollView.addSubview($0) })
-        [backBtn, textField, helperLabel, maxCountLabel, currentCountLabel, daySetTitleLabel, daySetDescriptionLabel, dayStackView, termSetTitleLabel, termSetDescriptionLabel, slider, sliderStartLabel, sliderEndLabel, completeBtn].forEach({ contentView.addSubview($0) })
+        [backBtn, textField, helperLabel, maxCountLabel, currentCountLabel, daySetTitleLabel, daySetDescriptionLabel, dayStackView, termSetTitleLabel, termSetDescriptionLabel, termLabel, slider, sliderStartLabel, sliderEndLabel, completeBtn].forEach({ contentView.addSubview($0) })
         
         if !isRecommendedData {
             [titleLabel, descriptionLabel, categoryCollectionView].forEach({ contentView.addSubview($0) })
@@ -624,6 +642,11 @@ class GoalSettingViewController: UIViewController {
             $0.right.left.equalToSuperview().inset(20)
         }
         
+        self.termLabel.snp.makeConstraints {
+            $0.top.equalTo(termSetTitleLabel.snp.bottom).offset(8)
+            $0.right.left.equalToSuperview().inset(20)
+        }
+        
         self.slider.snp.makeConstraints {
             $0.top.equalTo(termSetDescriptionLabel.snp.bottom).offset(32)
             $0.right.left.equalToSuperview().inset(20)
@@ -651,23 +674,6 @@ extension GoalSettingViewController: UITextFieldDelegate {
     // 완료버튼 누를시 키보드 내려감
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         textField.resignFirstResponder()
-        return true
-    }
-    
-    // 한글자 입력/제거 할때마다 호출
-    func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
-        
-        // 최대 글자수 도달하더라도 backspace는 허용
-        if let char = string.cString(using: String.Encoding.utf8) {
-            let isBackSpace = strcmp(char, "\\b")
-            if isBackSpace == -92 {
-                return true
-            }
-        }
-        
-        let text = textField.text ?? ""
-        let textCount = text.countText()
-
         return true
     }
 }

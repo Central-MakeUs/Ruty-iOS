@@ -63,6 +63,7 @@ class OnBoardingMainViewController: UIViewController {
         $0.setTitle("완료", for: .normal)
         $0.titleLabel?.font = UIFont(name: Font.semiBold.rawValue, size: 16)
         $0.setTitleColor(.white, for: .normal)
+        $0.isExclusiveTouch = true
     }
     
     private let tableView = UITableView().then {
@@ -89,6 +90,10 @@ class OnBoardingMainViewController: UIViewController {
         // tableView의 팬 제스처를 contentScrollView로 전달
         // tableView 의 스크롤은 안되더라도 클릭 제스쳐는 작동하게함
         contentScrollView.panGestureRecognizer.require(toFail: tableView.panGestureRecognizer)
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        isTappedLoadAIData = false
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -190,6 +195,7 @@ class OnBoardingMainViewController: UIViewController {
         navigationController?.popViewController(animated: true)
     }
     
+    var isTappedLoadAIData = false
     @objc func goNextPage() {
         // 0 개인 경우 통과 불가
         if selectedCellCnt == 0 {
@@ -209,6 +215,9 @@ class OnBoardingMainViewController: UIViewController {
             }
             else {
                 // GPT Prompt 전달
+                guard !isTappedLoadAIData else { return }
+                isTappedLoadAIData = true
+                
                 RoutineDataProvider.shared.setGPTParam(prompt: getGPTPrompt())
                 
                 let secondVC = LoadingViewController()
@@ -225,7 +234,7 @@ class OnBoardingMainViewController: UIViewController {
         for row in 0..<tableView.numberOfRows(inSection: 0) {
             let indexPath = IndexPath(row: row, section: 0)
             
-            guard let cell = tableView.cellForRow(at: indexPath) as? ImproveSelectTableViewCell else { return "null" }
+            guard let cell = tableView.cellForRow(at: indexPath) as? ImproveSelectCell else { return "null" }
             
             if cell.isChecked == true {
                 if prompt == "" {
@@ -246,7 +255,7 @@ class OnBoardingMainViewController: UIViewController {
         tableView.delegate = self
         tableView.dataSource = self
         tableView.separatorStyle = .none // cell 라인 없애기
-        tableView.register(ImproveSelectTableViewCell.self, forCellReuseIdentifier: ImproveSelectTableViewCell.identifier)
+        tableView.register(ImproveSelectCell.self, forCellReuseIdentifier: ImproveSelectCell.identifier)
     }
 }
 
@@ -258,7 +267,7 @@ extension OnBoardingMainViewController : UITableViewDelegate, UITableViewDataSou
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        guard let cell = tableView.dequeueReusableCell(withIdentifier: ImproveSelectTableViewCell.identifier, for: indexPath) as? ImproveSelectTableViewCell, let goalData = goalData else {
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: ImproveSelectCell.identifier, for: indexPath) as? ImproveSelectCell, let goalData = goalData else {
             return UITableViewCell()
         }
 
@@ -278,7 +287,7 @@ extension OnBoardingMainViewController : UITableViewDelegate, UITableViewDataSou
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         
         // 클릭한 cell 에 접근
-        if let selectedCell = tableView.cellForRow(at: indexPath) as? ImproveSelectTableViewCell {
+        if let selectedCell = tableView.cellForRow(at: indexPath) as? ImproveSelectCell {
             selectedCell.tapCell()
         }
         
@@ -304,7 +313,7 @@ extension OnBoardingMainViewController : UITableViewDelegate, UITableViewDataSou
         
         // 모든 셀 순회
         for visibleIndexPath in tableView.indexPathsForVisibleRows ?? [] {
-            if let cell = tableView.cellForRow(at: visibleIndexPath) as? ImproveSelectTableViewCell {
+            if let cell = tableView.cellForRow(at: visibleIndexPath) as? ImproveSelectCell {
                 if cell.isChecked == true { selectedCnt += 1 }
             }
         }

@@ -81,9 +81,6 @@ class PopUpViewController: UIViewController {
     @objc func tapAcceptBtn() {
         onCompleted()
         self.dismiss(animated: true)
-//        let nextVC = LoginViewController()
-//        self.view.window?.rootViewController = nextVC
-//        self.view.window?.makeKeyAndVisible()
     }
     
     func setUI() {
@@ -101,13 +98,6 @@ class PopUpViewController: UIViewController {
             }
         }
     }
-    
-//    func setData() {
-//        cancelBtn.setTitle(cancelBtnText, for: .normal)
-//        acceptBtn.setTitle(acceptBtnText, for: .normal)
-//        titleLabel.text = titleString
-//        descriptionLabel.text = descritipnString
-//    }
     
     func setLayout() {
         [popView].forEach({ self.view.addSubview($0) })

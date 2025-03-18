@@ -19,16 +19,26 @@ class SplashViewController: UIViewController {
         $0.backgroundColor = .clear
         $0.image = UIImage(named: "Ruty-title")
     }
+    
+    var isRecommendDataExist : Bool?
+    var isRoutineDataExist : Bool?
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-        print("스플래시 뷰 로드")
-        
-        performAutoLogin()
         setLayout()
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        performAutoLogin()
+    }
+    
+    deinit {
+        print("SplashViewController deinitialized")
     }
     
     func performAutoLogin() {
         guard let accessToken = UserDefaults.standard.string(forKey: "accessToken") else {
+            print("토큰이 없음")
             // 토큰이 없다면 로그인 화면으로 이동
             moveToLoginView()
             return
@@ -36,13 +46,51 @@ class SplashViewController: UIViewController {
         
         isTokenValid { isTokenValid in
             if isTokenValid {
-                LoginViewController.shared.splashVC = self
-                LoginViewController.shared.loadMemberAgree()
+                print("토큰이 존재하며 유효함")
+                RoutineDataProvider.shared.isRecommendedEver { isExist in
+                    self.isRecommendDataExist = isExist
+                    if self.isRoutineDataExist != nil { self.controlToLoginOrMain() }
+                } routineCompletion: { isExist in
+                    self.isRoutineDataExist = isExist
+                    if self.isRecommendDataExist != nil { self.controlToLoginOrMain() }
+                }
             }
             else {
+                print("토큰이 존재하지만 유효하지 않음")
                 print("refresh token 요청 시작")
                 self.refreshAccessToken()
             }
+        }
+    }
+    
+    func controlToLoginOrMain() {
+        guard let isRecommendDataExist = isRecommendDataExist, let isRoutineDataExist = isRoutineDataExist else { return }
+        
+        // 추천받은 루틴이 없는 경우 (회원가입 한 후 추천받지 않고 바로 앱 종료 한 경우)
+        if !isRecommendDataExist && !isRoutineDataExist {
+            moveToLoginView()
+        }
+        else {
+            moveToMainView() // 메인화면으로 이동
+        }
+    }
+    
+    func moveToLoginView() {
+        let nextVC = LoginViewController()
+        DispatchQueue.main.async {
+            self.view.window?.rootViewController = nextVC
+            self.view.window?.makeKeyAndVisible()
+        }
+    }
+    
+    func moveToMainView() {
+        let nextVC = MainHomeViewController()
+        let newNavController = UINavigationController(rootViewController: nextVC)
+        newNavController.modalPresentationStyle = .fullScreen
+        
+        DispatchQueue.main.async {
+            self.view.window?.rootViewController = newNavController
+            self.view.window?.makeKeyAndVisible()
         }
     }
     
@@ -88,8 +136,14 @@ class SplashViewController: UIViewController {
                     if decodedResponse.message == "ok" {
                         UserDefaults.standard.set(decodedResponse.data.accessToken, forKey: "accessToken")
                         UserDefaults.standard.set(decodedResponse.data.refreshToken, forKey: "refreshToken")
-                        LoginViewController.shared.splashVC = self
-                        LoginViewController.shared.loadMemberAgree()
+                        
+                        RoutineDataProvider.shared.isRecommendedEver { isExist in
+                            self.isRecommendDataExist = isExist
+                            if self.isRoutineDataExist != nil { self.controlToLoginOrMain() }
+                        } routineCompletion: { isExist in
+                            self.isRoutineDataExist = isExist
+                            if self.isRecommendDataExist != nil { self.controlToLoginOrMain() }
+                        }
                     }
                     else {
                         print("서버 연결 오류")
@@ -104,16 +158,6 @@ class SplashViewController: UIViewController {
                 print("API 요청 실패: \(error.localizedDescription)")
                 self.moveToLoginView()
             }
-        }
-    }
-    
-    func moveToLoginView() {
-        let nextVC = LoginViewController()
-        let newNavController = UINavigationController(rootViewController: nextVC)
-        newNavController.modalPresentationStyle = .fullScreen
-        DispatchQueue.main.async {
-            self.view.window?.rootViewController = newNavController
-            self.view.window?.makeKeyAndVisible()
         }
     }
     
@@ -132,5 +176,4 @@ class SplashViewController: UIViewController {
             $0.height.equalTo(34.47)
         }
     }
-    
 }

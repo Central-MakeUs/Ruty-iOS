@@ -26,6 +26,7 @@ class MyRoutineViewController: UIViewController {
     private let backBtn = UIButton().then {
         $0.setImage(UIImage(named: "back"), for: .normal)
         $0.addTarget(self, action: #selector(moveToBackPage), for: .touchUpInside)
+        $0.isExclusiveTouch = true
     }
     
     private let titleLabel = UILabel().then {
@@ -101,10 +102,22 @@ class MyRoutineViewController: UIViewController {
         navigationController?.interactivePopGestureRecognizer?.isEnabled = true
         
         updateData()
+        
+        // cell tap flag 초기화
+        for cell in tableView.visibleCells {
+            if let cell = cell as? MyRoutineCell {
+                // 셀에 대한 작업 수행
+                cell.isTappedShowRoutine = false
+            }
+        }
     }
     
     override func viewDidLayoutSubviews() {
         self.updateContentViewHeight()
+    }
+    
+    deinit {
+        print("MyRoutineViewController deinitialized")
     }
     
     // MARK: - API 요청

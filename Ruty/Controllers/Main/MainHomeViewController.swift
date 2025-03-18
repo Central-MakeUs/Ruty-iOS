@@ -78,6 +78,7 @@ class MainHomeViewController: UIViewController {
         $0.backgroundColor = UIColor.fill.primary
         $0.layer.cornerRadius = 16
         $0.isUserInteractionEnabled = true
+        $0.isExclusiveTouch = true
     }
     
     let addRoutineStackView = UIStackView().then {
@@ -107,6 +108,7 @@ class MainHomeViewController: UIViewController {
         $0.titleLabel?.font = UIFont(name: Font.semiBold.rawValue, size: 16)
         $0.setTitleColor(UIColor.font.primary, for: .normal)
         $0.addTarget(self, action: #selector(tapRecommendRoutineBtn), for: .touchUpInside)
+        $0.isExclusiveTouch = true
     }
     
     private let myRoutineBtn = UIButton().then {
@@ -116,6 +118,7 @@ class MainHomeViewController: UIViewController {
         $0.titleLabel?.font = UIFont(name: Font.semiBold.rawValue, size: 16)
         $0.setTitleColor(UIColor.font.primary, for: .normal)
         $0.addTarget(self, action: #selector(tapMyRoutineBtn), for: .touchUpInside)
+        $0.isExclusiveTouch = true
     }
     
     let deleteBtn = UIButton().then {
@@ -125,6 +128,7 @@ class MainHomeViewController: UIViewController {
         $0.setTitleColor(UIColor.font.tertiary, for: .normal)
         $0.titleLabel?.font = UIFont(name: Font.semiBold.rawValue, size: 16)
         $0.addTarget(self, action: #selector(tapDeleteBtn), for: .touchUpInside)
+        $0.isExclusiveTouch = true
     }
     
     // 카테고리 데이터
@@ -157,11 +161,20 @@ class MainHomeViewController: UIViewController {
     override func viewWillAppear(_ animated: Bool) {
         print("뷰 보여짐")
         loadTodayData()
+        
+        // tap flag 초기화
+        isTappedAddRoutine = false
+        isTappedRecommendRoutine = false
+        isTappedAllRoutine = false
     }
     
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         self.updateContentViewHeight()
+    }
+    
+    deinit {
+        print("MainHomeViewController deinitialized")
     }
     
     // MARK: - api 요청
@@ -465,7 +478,11 @@ class MainHomeViewController: UIViewController {
         addRoutineView.addGestureRecognizer(tapGesture)
     }
     
+    var isTappedAddRoutine = false
     @objc func tapAddRoutineBtn(_ sender: UIButton) {
+        guard !isTappedAddRoutine else { return }
+        
+        isTappedAddRoutine = true
         let nextVC = GoalSettingViewController()
         nextVC.modalPresentationStyle = .fullScreen
         nextVC.isRecommendedData = false
@@ -473,7 +490,12 @@ class MainHomeViewController: UIViewController {
         self.navigationController?.pushViewController(nextVC, animated: true)
     }
     
+    
+    var isTappedRecommendRoutine = false
     @objc func tapRecommendRoutineBtn() {
+        guard !isTappedRecommendRoutine else { return }
+        
+        isTappedRecommendRoutine = true
         RoutineDataProvider.shared.loadRecommendedData {
             let nextVC = RoutineViewController()
             nextVC.modalPresentationStyle = .fullScreen
@@ -482,8 +504,12 @@ class MainHomeViewController: UIViewController {
         }
     }
     
+    var isTappedAllRoutine = false
     // 나의 모든 루틴 보기 버튼 클릭
     @objc func tapMyRoutineBtn() {
+        guard !isTappedAllRoutine else { return }
+        
+        isTappedAllRoutine = true
         loadAllData {
             let nextVC = MyRoutineViewController()
             nextVC.setAllRoutinesData(data: self.sortedAllRoutinesData)
@@ -583,7 +609,6 @@ class MainHomeViewController: UIViewController {
             $0.top.equalTo(tableViewTopView.snp.bottom)
             $0.left.right.equalToSuperview()
             $0.bottom.equalToSuperview()
-            $0.height.equalTo(500)
         }
         
         self.addRoutineView.snp.makeConstraints{
@@ -624,7 +649,6 @@ class MainHomeViewController: UIViewController {
             $0.top.bottom.equalToSuperview().inset(16)
             $0.left.equalToSuperview().inset(6)
             $0.right.equalToSuperview().inset(6)
-            $0.height.equalTo(120)
         }
     }
     
@@ -638,6 +662,13 @@ class MainHomeViewController: UIViewController {
         let nextVC = LoginViewController()
         self.view.window?.rootViewController = nextVC
         self.view.window?.makeKeyAndVisible()
+    }
+    
+    // label의 rowNumber 에 따른 cellBlock의 height 반환
+    private func estimateTextHeight(text: String, width: CGFloat, font: UIFont) -> CGFloat {
+        let constraintRect = CGSize(width: width, height: .greatestFiniteMagnitude)
+        let boundingBox = text.boundingRect(with: constraintRect, options: .usesLineFragmentOrigin, attributes: [.font: font], context: nil)
+        return ceil(boundingBox.height)
     }
 }
 
@@ -686,6 +717,14 @@ extension MainHomeViewController : UITableViewDelegate, UITableViewDataSource {
             }
         }
         tableView.deselectRow(at: indexPath, animated: true)
+    }
+    
+    // cell 높이 동적으로 조절
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        let item = showTodayRoutineData[indexPath.row]
+        
+        let newHeight = estimateTextHeight(text: item.title, width: tableView.frame.width - 40, font: UIFont(name: Font.semiBold.rawValue, size: 14)!)
+        return newHeight + 55 // 기본 마진 추가
     }
 }
 

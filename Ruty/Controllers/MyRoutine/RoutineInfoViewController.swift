@@ -43,6 +43,7 @@ class RoutineInfoViewController: UIViewController {
     private let backBtn = UIButton().then {
         $0.setImage(UIImage(named: "back"), for: .normal)
         $0.addTarget(self, action: #selector(moveToBackPage), for: .touchUpInside)
+        $0.isExclusiveTouch = true
     }
     
     private let titleStack = UIStackView().then {
@@ -146,11 +147,13 @@ class RoutineInfoViewController: UIViewController {
     private let calendarPreMoveBtn = UIButton().then {
         $0.setImage(UIImage(named: "Icon-Chevron Left"), for: .normal)
         $0.addTarget(self, action: #selector(moveToPrev), for: .touchUpInside)
+        $0.isExclusiveTouch = true
     }
     
     private let calendarNextMoveBtn = UIButton().then {
         $0.setImage(UIImage(named: "Icon-Chevron Right"), for: .normal)
         $0.addTarget(self, action: #selector(moveToNext), for: .touchUpInside)
+        $0.isExclusiveTouch = true
     }
     
     private let monthLabel = UILabel().then {
@@ -184,6 +187,7 @@ class RoutineInfoViewController: UIViewController {
         $0.titleLabel?.font = UIFont(name: Font.semiBold.rawValue, size: 16)
         $0.setTitleColor(.white, for: .normal)
         $0.addTarget(self, action: #selector(tapDiscardBtn), for: .touchUpInside)
+        $0.isExclusiveTouch = true
     }
     
     override func viewDidLoad() {
@@ -215,6 +219,10 @@ class RoutineInfoViewController: UIViewController {
                 label.textColor = UIColor.font.tertiary
             }
         }
+    }
+    
+    deinit {
+        print("RoutineInfoViewController deinitialized")
     }
     
     // MARK: - API

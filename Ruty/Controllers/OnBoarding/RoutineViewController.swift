@@ -75,6 +75,7 @@ class RoutineViewController: UIViewController {
         $0.titleLabel?.font = UIFont(name: Font.semiBold.rawValue, size: 16)
         $0.setTitleColor(.white, for: .normal)
         $0.addTarget(self, action: #selector(tapMoveToMainBtn), for: .touchUpInside)
+        $0.isExclusiveTouch = true
     }
     
     private let categoryType = ["주거", "소비", "여가생활", "자기관리"]
@@ -130,11 +131,18 @@ class RoutineViewController: UIViewController {
             navigationController?.interactivePopGestureRecognizer?.delegate = self
             navigationController?.interactivePopGestureRecognizer?.isEnabled = true
         }
+        
+        // tap flag 초기화
+        isTappedMovePage = false
     }
     
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         self.updateContentViewHeight()
+    }
+    
+    deinit {
+        print("RoutineViewController deinitialized")
     }
     
     // MARK: - 카테고리 관련 함수
@@ -224,7 +232,11 @@ class RoutineViewController: UIViewController {
     }
     
     // MARK: - tap 함수
+    var isTappedMovePage = false
     @objc func moveToSettingPage(_ notification: Notification) {
+        guard !isTappedMovePage else { return }
+        isTappedMovePage = true
+        
         guard let userInfo = notification.userInfo else { return }
         guard let routineName = userInfo["routineName"] as? String else { return }
         guard let id = userInfo["id"] as? Int else { return }
@@ -269,7 +281,7 @@ class RoutineViewController: UIViewController {
         tableView.delegate = self
         tableView.dataSource = self
         tableView.separatorStyle = .none // cell 라인 없애기
-        tableView.register(RoutineCellTableViewCell.self, forCellReuseIdentifier: RoutineCellTableViewCell.identifier)
+        tableView.register(RoutineCell.self, forCellReuseIdentifier: RoutineCell.identifier)
     }
     
     func setUI() {
@@ -353,7 +365,7 @@ extension RoutineViewController : UITableViewDelegate, UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        guard let cell = tableView.dequeueReusableCell(withIdentifier: RoutineCellTableViewCell.identifier, for: indexPath) as? RoutineCellTableViewCell else {
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: RoutineCell.identifier, for: indexPath) as? RoutineCell else {
             return UITableViewCell()
         }
         let item = routinesData[selectedCategoryIndex][indexPath.row]
