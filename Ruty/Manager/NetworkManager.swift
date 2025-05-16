@@ -21,7 +21,7 @@ class NetworkManager {
     // request body or param 만 있는 경우
     // JSONEncoding.default: 주로 POST, PUT 등의 요청에서 사용하며, 파라미터를 JSON 형태의 본문에 인코딩합니다.
     // URLEncoding.default: GET 요청에서 URL에 파라미터를 추가하는 데 사용, 쿼리 파라미터를 url 에 추가하는 경우
-    func requestAPI(url: String, method: HTTPMethod, encoding: ParameterEncoding, param: Parameters?, completion : @escaping (Result<Data, Error>) -> Void) {
+    func requestAPI(url: String, method: HTTPMethod, encoding: ParameterEncoding, param: Parameters?, timeout: Int = 100, completion : @escaping (Result<Data, Error>) -> Void) {
         let accessToken = UserDefaults.standard.string(forKey: "accessToken") ?? ""
         let header: HTTPHeaders = [
             "Authorization": "Bearer \(accessToken)",
@@ -32,7 +32,8 @@ class NetworkManager {
                    method: method,
                    parameters: param ?? nil,
                    encoding: encoding,
-                   headers: header)
+                   headers: header,
+                   requestModifier: { $0.timeoutInterval = 1 })
         .validate(statusCode: 200..<300)
         .responseData { response in
             switch response.result {

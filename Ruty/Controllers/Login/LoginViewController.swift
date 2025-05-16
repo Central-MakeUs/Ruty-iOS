@@ -190,7 +190,7 @@ class LoginViewController: UIViewController {
             guard let jsonData = try? JSONEncoder().encode(param),
                   var param = try? JSONSerialization.jsonObject(with: jsonData) as? [String: Any] else { return }
                     
-            NetworkManager.shared.requestAPI(url: url, method: .post, encoding: JSONEncoding.default , param: param) { result in
+            NetworkManager.shared.requestAPI(url: url, method: .post, encoding: JSONEncoding.default , param: param, timeout: 3) { result in
                 
                 switch result {
                 case .success(let data):
@@ -357,7 +357,7 @@ extension LoginViewController: ASAuthorizationControllerDelegate {
                 self.isTappedLogin = true
 
                 UserDefaults.standard.set(authorizationCodeString, forKey: "authCode")
-                NetworkManager.shared.requestAPI(url: url, method: .post, encoding: JSONEncoding.default, param: param) { result in
+                NetworkManager.shared.requestAPI(url: url, method: .post, encoding: JSONEncoding.default, param: param, timeout: 3) { result in
                     switch result {
                     case .success(let data):
                         do {
