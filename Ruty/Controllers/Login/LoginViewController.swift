@@ -186,7 +186,7 @@ class LoginViewController: UIViewController {
             
             let url = NetworkManager.shared.getRequestURL(api: "/login/oauth2/code/google")
             
-            let param = JSONModel.GoogleLogin(platformType: "ios", code: idToken!)
+            let param = JSONModel.Login(platformType: "ios", code: idToken!)
             guard let jsonData = try? JSONEncoder().encode(param),
                   var param = try? JSONSerialization.jsonObject(with: jsonData) as? [String: Any] else { return }
                     
@@ -261,10 +261,12 @@ class LoginViewController: UIViewController {
                     else {
                         self.loadNickName()
                         
-                        RoutineDataProvider.shared.isRecommendedEver { isExist in
+                        RoutineDataProvider.shared.isRecommendedDataExist { isExist in
                             self.isRecommendDataExist = isExist
                             if self.isRoutineDataExist != nil { self.controlToSignUpOrMain() }
-                        } routineCompletion: { isExist in
+                        }
+                        
+                        RoutineDataProvider.shared.isRoutineDataExist { isExist in
                             self.isRoutineDataExist = isExist
                             if self.isRecommendDataExist != nil { self.controlToSignUpOrMain() }
                         }
@@ -287,7 +289,7 @@ class LoginViewController: UIViewController {
             switch result {
             case .success(let data):
                 do {
-                    let decodedResponse = try JSONDecoder().decode(JSONModel.AppleUserInfoResponse.self, from: data)
+                    let decodedResponse = try JSONDecoder().decode(JSONModel.UserInfoResponse.self, from: data)
                     DataManager.shared.userNickName = decodedResponse.data.nickName
                 } catch {
                     print("추천 JSON 디코딩 오류: \(error)")
@@ -349,7 +351,7 @@ extension LoginViewController: ASAuthorizationControllerDelegate {
             if let authorizationCodeData = appleIdCredential.authorizationCode,
                let authorizationCodeString = String(data: authorizationCodeData, encoding: .utf8) {
                 let url = NetworkManager.shared.getRequestURL(api: "/login/oauth2/code/apple")
-                let param = JSONModel.AppleLogin(platformType: "ios", code: authorizationCodeString)
+                let param = JSONModel.Login(platformType: "ios", code: authorizationCodeString)
                 guard let jsonData = try? JSONEncoder().encode(param),
                       var param = try? JSONSerialization.jsonObject(with: jsonData) as? [String: Any] else { return }
                 

@@ -138,13 +138,16 @@ class SplashViewController: UIViewController {
                         UserDefaults.standard.set(decodedResponse.data.accessToken, forKey: "accessToken")
                         UserDefaults.standard.set(decodedResponse.data.refreshToken, forKey: "refreshToken")
                         
-                        RoutineDataProvider.shared.isRecommendedEver { isExist in
+                        RoutineDataProvider.shared.isRecommendedDataExist { isExist in
                             self.isRecommendDataExist = isExist
                             if self.isRoutineDataExist != nil { self.controlToLoginOrMain() }
-                        } routineCompletion: { isExist in
+                        }
+                        
+                        RoutineDataProvider.shared.isRoutineDataExist { isExist in
                             self.isRoutineDataExist = isExist
                             if self.isRecommendDataExist != nil { self.controlToLoginOrMain() }
                         }
+                        
                     }
                     else {
                         print("서버 연결 오류")
