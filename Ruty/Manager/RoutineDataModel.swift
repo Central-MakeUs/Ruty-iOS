@@ -93,12 +93,8 @@ class RoutineDataProvider {
         }
     }
     
-    
-    
-    func isRecommendedEver(recommendCompletion: @escaping (Bool) -> (), routineCompletion: @escaping (Bool) -> ()) {
-        
-        
-        var url = NetworkManager.shared.getRequestURL(api: "/api/recommend/my")
+    func isRecommendedDataExist(recommendCompletion: @escaping (Bool) -> ()) {
+        let url = NetworkManager.shared.getRequestURL(api: "/api/recommend/my")
         NetworkManager.shared.requestAPI(url: url, method: .get, encoding: URLEncoding.default, param: nil) { result in
             switch result {
             case .success(let data):
@@ -114,8 +110,10 @@ class RoutineDataProvider {
                 print("네트워크 api 요청 실패: \(error)")
             }
         }
-        
-        url = NetworkManager.shared.getRequestURL(api: "/api/routine")
+    }
+    
+    func isRoutineDataExist(routineCompletion: @escaping (Bool) -> ()) {
+        let url = NetworkManager.shared.getRequestURL(api: "/api/routine")
         NetworkManager.shared.requestAPI(url: url, method: .get, encoding: URLEncoding.default, param: nil) { result in
             switch result {
             case .success(let data):

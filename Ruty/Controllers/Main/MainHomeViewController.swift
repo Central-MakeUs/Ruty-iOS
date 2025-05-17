@@ -185,7 +185,7 @@ class MainHomeViewController: UIViewController {
             switch result {
             case .success(let data):
                 do {
-                    let decodedResponse = try JSONDecoder().decode(JSONModel.AppleUserInfoResponse.self, from: data)
+                    let decodedResponse = try JSONDecoder().decode(JSONModel.UserInfoResponse.self, from: data)
                     DataManager.shared.userNickName = decodedResponse.data.nickName
                     DataManager.shared.socialType = decodedResponse.data.socialType
                 } catch {

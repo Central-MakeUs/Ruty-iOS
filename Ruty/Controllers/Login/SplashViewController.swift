@@ -39,6 +39,7 @@ class SplashViewController: UIViewController {
     func performAutoLogin() {
         guard let accessToken = UserDefaults.standard.string(forKey: "accessToken") else {
             print("토큰이 없음")
+            
             // 토큰이 없다면 로그인 화면으로 이동
             moveToLoginView()
             return
@@ -47,10 +48,13 @@ class SplashViewController: UIViewController {
         isTokenValid { isTokenValid in
             if isTokenValid {
                 print("토큰이 존재하며 유효함")
-                RoutineDataProvider.shared.isRecommendedEver { isExist in
+                
+                RoutineDataProvider.shared.isRecommendedDataExist { isExist in
                     self.isRecommendDataExist = isExist
                     if self.isRoutineDataExist != nil { self.controlToLoginOrMain() }
-                } routineCompletion: { isExist in
+                }
+                
+                RoutineDataProvider.shared.isRoutineDataExist { isExist in
                     self.isRoutineDataExist = isExist
                     if self.isRecommendDataExist != nil { self.controlToLoginOrMain() }
                 }
@@ -64,6 +68,8 @@ class SplashViewController: UIViewController {
     }
     
     func controlToLoginOrMain() {
+        print("controlToLoginOrMain 실행 성공")
+        
         guard let isRecommendDataExist = isRecommendDataExist, let isRoutineDataExist = isRoutineDataExist else { return }
         
         // 추천받은 루틴이 없는 경우 (회원가입 한 후 추천받지 않고 바로 앱 종료 한 경우)
@@ -127,23 +133,21 @@ class SplashViewController: UIViewController {
             switch result {
             case .success(let data):
                 do {
-                    if let jsonString = String(data: data, encoding: .utf8) {
-                        print("모든 루틴 JSON 문자열: \(jsonString)")
-                    } else {
-                        print("Data를 문자열로 변환할 수 없습니다.")
-                    }
                     let decodedResponse = try JSONDecoder().decode(JSONModel.LoginResponse.self, from: data)
                     if decodedResponse.message == "ok" {
                         UserDefaults.standard.set(decodedResponse.data.accessToken, forKey: "accessToken")
                         UserDefaults.standard.set(decodedResponse.data.refreshToken, forKey: "refreshToken")
                         
-                        RoutineDataProvider.shared.isRecommendedEver { isExist in
+                        RoutineDataProvider.shared.isRecommendedDataExist { isExist in
                             self.isRecommendDataExist = isExist
                             if self.isRoutineDataExist != nil { self.controlToLoginOrMain() }
-                        } routineCompletion: { isExist in
+                        }
+                        
+                        RoutineDataProvider.shared.isRoutineDataExist { isExist in
                             self.isRoutineDataExist = isExist
                             if self.isRecommendDataExist != nil { self.controlToLoginOrMain() }
                         }
+                        
                     }
                     else {
                         print("서버 연결 오류")

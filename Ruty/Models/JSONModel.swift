@@ -55,12 +55,7 @@ class JSONModel {
         let month: Int
     }
     
-    struct GoogleLogin: Encodable {
-        let platformType: String
-        let code: String
-    }
-    
-    struct AppleLogin: Encodable {
+    struct Login: Encodable {
         let platformType: String
         let code: String
     }
@@ -139,34 +134,18 @@ class JSONModel {
         let data: Int
     }
     
-    struct GoogleUserInfoResponse: Codable {
+    struct UserInfoResponse: Codable {
         let message: String
-        let data: GoogleUserInfo
+        let data: UserInfo
     }
 
-    struct GoogleUserInfo: Codable {
+    struct UserInfo: Codable {
         let memberId: Int
         let email: String
-        let nickName: String
-        let name: String
-        let picture: String?
-        let isAgree: Bool
-        let socialType: String
-        let refreshToken: String
-    }
-    
-    struct AppleUserInfoResponse: Codable {
-        let message: String
-        let data: AppleUserInfo
-    }
-
-    struct AppleUserInfo: Codable {
-        let memberId: Int
-        let email: String
-        let nickName: String
+        let nickName: String?
         let name: String?
         let picture: String?
-        let isAgree: Bool
+        let isAgree: Bool?
         let socialType: String
         let refreshToken: String
     }
