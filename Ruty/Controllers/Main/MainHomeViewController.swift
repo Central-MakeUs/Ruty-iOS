@@ -185,7 +185,7 @@ class MainHomeViewController: UIViewController {
             switch result {
             case .success(let data):
                 do {
-                    let decodedResponse = try JSONDecoder().decode(JSONModel.AppleUserInfoResponse.self, from: data)
+                    let decodedResponse = try JSONDecoder().decode(JSONModel.UserInfoResponse.self, from: data)
                     DataManager.shared.userNickName = decodedResponse.data.nickName
                     DataManager.shared.socialType = decodedResponse.data.socialType
                 } catch {
@@ -266,6 +266,7 @@ class MainHomeViewController: UIViewController {
             case .success(let data):
                 do {
                     let decodedResponse = try JSONDecoder().decode(JSONModel.RoutinesResponse.self, from: data)
+                    print("오늘의 루틴 목록: \(decodedResponse)")
                     self.todayRoutineData = decodedResponse
                     self.sortTodayRoutineData()
                     self.makeShowTodayRoutine()
@@ -707,11 +708,11 @@ extension MainHomeViewController : UITableViewDelegate, UITableViewDataSource {
                     selectedCell.isChecked = false // 루틴 cell check 표기 복구
                     
                 } nonClickAction: {
-                    print("루틴 실행완료")
                     // 루틴 실행 취소를 누르지 않은 경우
                     // 완료된 루틴 리스트에서 삭제
                     if !isClickedUndo {
                         self.blindDoneTodayRoutine(routineId: selectedCell.routineId)
+                        print("루틴 실행완료")
                     }
                 }
             }
